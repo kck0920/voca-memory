@@ -1,0 +1,11 @@
+[package]
+name = "voca-store"
+description = "저장소 seam. 트랜잭션 경계와 파생 규칙을 이 모듈 안에 가둔다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+time = { workspace = true }
+serde = { workspace = true }

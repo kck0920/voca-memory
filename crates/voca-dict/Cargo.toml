@@ -1,0 +1,27 @@
+[package]
+name = "voca-dict"
+description = "외부 사전 API 클라이언트와 결과 캐시."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+voca-store = { path = "../voca-store" }
+voca-store-sqlite = { path = "../voca-store-sqlite" }
+
+time = { workspace = true }
+serde = { workspace = true }
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = [
+    "json",
+    "rustls-tls",
+    "gzip",
+] }
+tokio = { version = "1", features = ["time"] }
+tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time"] }
+tempfile = "3"

@@ -1,0 +1,43 @@
+[package]
+name = "voca-server"
+description = "axum HTTP 계층. 얇은 어댑터 — 규칙은 여기 아래에 있다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+voca-store = { path = "../voca-store" }
+voca-store-sqlite = { path = "../voca-store-sqlite" }
+voca-dict = { path = "../voca-dict" }
+voca-ui = { path = "../voca-ui", features = ["ssr"] }
+
+time = { workspace = true, features = ["local-offset"] }
+serde = { workspace = true }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+argon2 = "0.6"
+axum = { version = "0.8", features = ["macros"] }
+leptos = { version = "0.8", default-features = false, features = ["ssr"] }
+# 쿠키 처리를 위해. 직접 파싱하면 SameSite/Secure 를 빠뜨리기 쉽다.
+axum-extra = { version = "0.10", features = ["cookie"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.6", features = ["trace", "limit"] }
+http-body-util = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal"] }
+
+[dev-dependencies]
+tempfile = "3"
+# 저장소를 직접 들여다보는 검증을 위해 (평문 비밀번호가 남는지 등).
+sqlx = { version = "0.9", default-features = false, features = [
+    "runtime-tokio",
+    "sqlite",
+    "migrate",
+    "macros",
+    "time",
+] }

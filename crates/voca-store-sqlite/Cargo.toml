@@ -1,0 +1,33 @@
+[package]
+name = "voca-store-sqlite"
+description = "voca-store seam의 SQLite 어댑터."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+voca-store = { path = "../voca-store" }
+# 회수 가능성 계산용. voca-domain 이 이미 의존하지만 재노출하지 않으므로 직접 둔다.
+fsrs = { workspace = true }
+# 사전 캐시와 전역 단어 저장.
+uuid = { version = "1", features = ["v4"] }
+# 세션 토큰 해시.
+sha2 = "0.10"
+# 세션 토큰 난수. voca-domain 의 wasm shim 과 무관하게 네이티브 전용이다.
+getrandom = "0.4"
+# ID 발급은 저장소 경계의 책임이다 (voca-domain 은 ID를 생성하지 않는다).
+time = { workspace = true }
+sqlx = { version = "0.9", default-features = false, features = [
+    "runtime-tokio",
+    "sqlite",
+    "migrate",
+    # FromRow 파생에 필요하다. query! 매크로는 쓰지 않으므로 빌드 타임 DB가 필요 없다.
+    "macros",
+    "time",
+] }
+
+[dev-dependencies]
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio","sqlite","migrate","macros","time"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tempfile = "3"

@@ -1,0 +1,23 @@
+[package]
+name = "voca-domain"
+description = "Voca Memory 도메인 로직. 서버와 브라우저 양쪽에서 실행 가능해야 한다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+time = { workspace = true }
+uuid = { workspace = true }
+fsrs = { workspace = true }
+
+# fsrs는 rand를 통해 getrandom을 끌어오는데, getrandom 0.4는 wasm32-unknown-unknown에서
+# `wasm_js` feature 없이는 컴파일되지 않는다. 이 크레이트가 실제로 난수를 쓰는 곳은
+# simulate()/compute_parameters()뿐이고, 그 둘은 네이티브 전용이다. 스케줄러
+# next_states()는 결정적이라 이 shim이 런타임에 호출되지 않는다.
+# target-scoped로 걸어 네이티브 빌드에는 영향을 주지 않는다. 근거는 docs/adr/0008.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.4", features = ["wasm_js"] }
+
+[dev-dependencies]
+serde_json = "1.0.151"

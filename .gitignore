@@ -1,0 +1,18 @@
+# 빌드 산출물
+/target
+# cargo-leptos 가 만드는 정적 파일
+/web/dist
+/web/pkg
+/web/style.css
+# cargo-leptos 가 만드는 사이트 루트
+/web/site
+
+# 로컬 데이터베이스. 절대 커밋하지 않는다 — 평문 비밀번호 해시와 세션 토큰이 있다.
+*.db
+*.db-shm
+*.db-wal
+/data
+
+# 로컬 환경
+.env
+.env.local

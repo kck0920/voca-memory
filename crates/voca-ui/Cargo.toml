@@ -1,0 +1,23 @@
+[package]
+name = "voca-ui"
+description = "Leptos 컴포넌트. voca-domain 만 참조한다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[features]
+default = []
+# SSR 빌드에서만 켠다. `cargo-leptos` 가 양쪽을 따로 만든다.
+ssr = ["leptos/ssr"]
+# 서버가 이미 그려 놓은 페이지를 물린다.
+hydrate = ["leptos/hydrate"]
+# 서버 없이 처음부터 그린다 — Tauri 가 이 경로다.
+csr = ["leptos/csr"]
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+leptos = { version = "0.8", default-features = false }
+serde = { workspace = true }
+serde_json = "1"
+time = { workspace = true }

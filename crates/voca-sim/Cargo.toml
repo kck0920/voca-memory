@@ -1,0 +1,11 @@
+[package]
+name = "voca-sim"
+description = "FSRS 스케줄링 시뮬레이터. 네이티브 전용 개발 도구다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+voca-domain = { path = "../voca-domain" }
+fsrs = { workspace = true }

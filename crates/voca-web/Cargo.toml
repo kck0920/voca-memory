@@ -1,0 +1,39 @@
+[package]
+name = "voca-web"
+description = "브라우저 진입점. wasm 만 만든다 — 로직은 없다."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+voca-ui = { path = "../voca-ui", features = ["hydrate"] }
+leptos = { version = "0.8", default-features = false, features = ["hydrate"] }
+voca-domain = { path = "../voca-domain" }
+serde = { workspace = true }
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
+web-sys = { version = ">=0.3.77", features = ["Window", "Document", "HtmlScriptElement", "Element"] }
+serde_json = "1"
+
+# cargo-leptos 가 이 표를 읽는다. 이름이 여기서 정해지면 `site-pkg-dir` 아래에
+# 같은 이름으로 번들이 놓인다. 서버의 `SCRIPT_SRC` 와 어긋나면 조용히 죽는다.
+[package.metadata.leptos]
+output-name = "voca-web"
+site-root = "../web"
+site-pkg-dir = "pkg"
+style-file = "style.css"
+assets-dir = "assets"
+site-addr = "127.0.0.1:3000"
+relay-addr = "127.0.0.1:3001"
+output-pub-dir = "target/leptos"
+site-file-assets = "dist"
+env = "DEV"
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+lib-profile-release = "wasm-release"
