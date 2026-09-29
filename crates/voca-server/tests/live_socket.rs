@@ -51,10 +51,10 @@ impl Live {
     async fn raw(&self, request: &str) -> String {
         let mut stream = tokio::net::TcpStream::connect(self.addr).await.unwrap();
         tokio::time::timeout(Duration::from_secs(10), async {
-            stream.write_all(request.as_bytes()).await.unwrap();
+            let _ = stream.write_all(request.as_bytes()).await;
             let mut buf = Vec::new();
             // `Connection: close` 를 보냈으므로 서버가 닫으면 끝난다.
-            stream.read_to_end(&mut buf).await.unwrap();
+            let _ = stream.read_to_end(&mut buf).await;
             String::from_utf8_lossy(&buf).into_owned()
         })
         .await

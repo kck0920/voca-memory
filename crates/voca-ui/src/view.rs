@@ -96,22 +96,33 @@ pub fn DashboardHeader(view: DashboardView) -> impl IntoView {
                 </Show>
             </p>
             <p class="due">
-                {view.reviews_due}
+                <b>{view.reviews_due}</b>
                 "장 복습 · "
-                {view.new_remaining}
+                <b>{view.new_remaining}</b>
                 "장 새 단어"
             </p>
-            <LevelBar level=view.level percent=view.level_percent() />
+            <LevelBar
+                level=view.level
+                percent=view.level_percent()
+                into=view.xp_into_level
+                span=view.xp_span
+            />
         </header>
     }
 }
 
+/// 레벨 게이지.
+///
+/// `into` / `span` 은 막대만으로는 알 수 없는 것을 말해 준다. **0% 인 게이지와
+/// 비어 있는 게이지는 화면에서 구분되지 않는다** — 숫자를 붙여야 "아직 안 채웠구나"
+/// 가 "아직 시작도 안 했구나" 와 다르다.
 #[component]
-pub fn LevelBar(level: u32, percent: u32) -> impl IntoView {
+pub fn LevelBar(level: u32, percent: u32, into: u32, span: u32) -> impl IntoView {
     view! {
         <div class="level" data-testid="level-bar" data-level=level>
             <span class="level-label">{format!("Lv {level}")}</span>
             <progress class="level-progress" value=percent max=100 />
+            <span class="level-xp">{format!("{into} / {span} XP")}</span>
         </div>
     }
 }
@@ -175,7 +186,7 @@ pub fn RetentionPicker(selected: RetentionPreset) -> impl IntoView {
                     let checked = preset == selected;
                     view! {
                         <label data-preset=format!("{:?}", preset) data-checked=checked.to_string()>
-                            <input type="radio" name="retention" value=format!("{:?}", preset) checked />
+                            <input type="radio" name="retention" value=format!("{:?}", preset) checked=checked />
                             <strong>{name}</strong>
                             <span>{blurb}</span>
                         </label>

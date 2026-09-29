@@ -36,6 +36,10 @@ async fn main() -> ExitCode {
         }
     };
 
+    if let Err(e) = voca_server::seed::load_seeds_into_store(&store).await {
+        tracing::warn!(error = ?e, "시드 단어 로드 중 경고가 발생했다");
+    }
+
     let state = voca_server::AppState::new(store, &config);
     let app = build_router(state);
 

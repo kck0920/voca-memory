@@ -12,6 +12,7 @@ mod page;
 pub mod password;
 mod routes;
 pub mod security;
+pub mod seed;
 mod study;
 mod sync;
 
@@ -110,6 +111,7 @@ pub fn build_router(state: AppState) -> Router {
             get(library::list_decks).post(library::create_deck),
         )
         .route("/api/decks/cards", post(library::add_cards))
+        .route("/api/decks/seed", post(seed::bootstrap_seed_endpoint))
         .route("/api/sync/changes", get(sync::changes))
         .route("/api/health", get(health))
         .route("/", get(page::index))

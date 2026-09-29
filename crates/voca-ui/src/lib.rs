@@ -22,11 +22,113 @@ use view::{DashboardHeader, DashboardView};
 pub fn App(initial: DashboardView) -> impl IntoView {
     view! {
         <main class="app">
-            <h1>"Voca Memory"</h1>
+            <header class="app-topbar">
+                <div class="brand-group">
+                    <h1 class="brand">"Voca Memory"</h1>
+                    <p class="brand-sub">"영어 어휘장 · 복습 터미널"</p>
+                </div>
+                <div id="auth-status" class="auth-status"></div>
+            </header>
+
             <DashboardHeader view=initial />
-            <p class="empty-note">
-                "단어를 추가하면 여기에서 복습을 시작합니다."
-            </p>
+
+            // 비로그인 상태: 로그인 / 회원가입 폼
+            <section id="auth-section" class="panel auth-panel">
+                <div class="auth-tabs">
+                    <button type="button" class="tab-btn active" id="tab-login-btn">"로그인"</button>
+                    <button type="button" class="tab-btn" id="tab-register-btn">"회원가입"</button>
+                </div>
+                <form id="login-form" class="auth-form">
+                    <div class="form-row">
+                        <label for="login-email">"이메일"</label>
+                        <input type="email" id="login-email" required=true placeholder="user@example.com" />
+                    </div>
+                    <div class="form-row">
+                        <label for="login-password">"비밀번호"</label>
+                        <input type="password" id="login-password" required=true placeholder="8자 이상" />
+                    </div>
+                    <button type="submit" class="submit-btn">"로그인"</button>
+                </form>
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-row">
+                        <label for="reg-email">"이메일"</label>
+                        <input type="email" id="reg-email" required=true placeholder="user@example.com" />
+                    </div>
+                    <div class="form-row">
+                        <label for="reg-name">"닉네임"</label>
+                        <input type="text" id="reg-name" required=true placeholder="학습자" />
+                    </div>
+                    <div class="form-row">
+                        <label for="reg-password">"비밀번호"</label>
+                        <input type="password" id="reg-password" required=true placeholder="8자 이상" />
+                    </div>
+                    <button type="submit" class="submit-btn">"회원가입하고 시작하기"</button>
+                </form>
+                <div id="auth-msg" class="system-msg"></div>
+            </section>
+
+            // 로그인 사용자 패널: 복습 / 단어 검색·추가 / 설정
+            <section id="study-panel" class="panel study-panel hidden">
+                <nav class="action-nav">
+                    <button type="button" class="action-tab active" data-tab="study">"1. 복습하기"</button>
+                    <button type="button" class="action-tab" data-tab="dict">"2. 단어 검색 및 추가"</button>
+                    <button type="button" class="action-tab" data-tab="settings">"3. 학습 설정"</button>
+                </nav>
+
+                // 1. 복습하기 탭
+                <div id="tab-study-content" class="tab-content active">
+                    <div id="study-container">
+                        <p class="empty-note">
+                            "단어를 추가하면 여기에서 복습을 시작합니다."
+                        </p>
+                    </div>
+                </div>
+
+                // 2. 단어 검색 및 추가 탭
+                <div id="tab-dict-content" class="tab-content hidden">
+                    <form id="dict-search-form" class="search-bar">
+                        <input type="text" id="dict-search-input" placeholder="영단어 검색 (예: run, keep, make, take...)" />
+                        <button type="submit" class="action-btn-primary">"사전 검색"</button>
+                    </form>
+                    <div id="dict-results"></div>
+
+                    <h3 class="sub-panel-title">"또는 나만의 뜻 직접 등록하기"</h3>
+                    <form id="custom-sense-form" class="auth-form">
+                        <div class="form-row">
+                            <label for="custom-lemma">"단어 (표기형)"</label>
+                            <input type="text" id="custom-lemma" required=true placeholder="run" />
+                        </div>
+                        <div class="form-row">
+                            <label for="custom-pos">"품사 (선택)"</label>
+                            <input type="text" id="custom-pos" placeholder="verb, noun 등" />
+                        </div>
+                        <div class="form-row">
+                            <label for="custom-def">"한글 뜻 (필수)"</label>
+                            <input type="text" id="custom-def" required=true placeholder="달리다, 운영하다" />
+                        </div>
+                        <div class="form-row">
+                            <label for="custom-ex">"영어 예문 (선택)"</label>
+                            <input type="text" id="custom-ex" placeholder="She runs every morning." />
+                        </div>
+                        <button type="submit" class="action-btn-secondary">"내 덱에 추가"</button>
+                        <div id="custom-sense-msg" class="system-msg"></div>
+                    </form>
+
+                    <h3 class="sub-panel-title">"기본 단어 세트"</h3>
+                    <button type="button" class="action-btn-primary" id="btn-import-seed-global">
+                        "★ 기본 필수 다의어 30선 덱에 추가하기"
+                    </button>
+                    <div id="seed-import-feedback" class="system-msg"></div>
+                </div>
+
+                // 3. 학습 설정 탭
+                <div id="tab-settings-content" class="tab-content hidden">
+                    <p class="empty-note">
+                        "목표 기억 유지율(Retention)을 설정합니다. 숫자가 높을수록 자주 복습합니다."
+                    </p>
+                    <view::RetentionPicker selected=voca_domain::RetentionPreset::Balanced />
+                </div>
+            </section>
         </main>
     }
 }
@@ -72,10 +174,9 @@ pub fn render_page(initial: DashboardView, script_src: &str) -> String {
 
     let body = Owner::new().with(|| App(AppProps { initial }).into_view().to_html());
 
-    // 데이터를 JSON 으로 심어 둔다. `type="application/json"` 인 script 는 실행되지
-    // 않으므로 XSS 로 새지 않는다. 페이지를 동결(`Object.freeze`)하지 않는다 —
-    // 그건 눈여겨볼 만한 공격이지, 여기서는 문제가 아니다.
     let payload = serde_json::to_string(&initial).unwrap_or_else(|_| "{}".to_owned());
+    let css = include_str!("../assets/retro.css");
+    let js = include_str!("../assets/app.js");
 
     format!(
         r#"<!DOCTYPE html>
@@ -84,11 +185,13 @@ pub fn render_page(initial: DashboardView, script_src: &str) -> String {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Voca Memory</title>
+<style>{css}</style>
 </head>
 <body>
 {body}
 <script type="application/json" id="{data_id}">{payload}</script>
 <script type="module" src="{script_src}"></script>
+<script>{js}</script>
 </body>
 </html>
 "#,
