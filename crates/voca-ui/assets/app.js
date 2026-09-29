@@ -497,7 +497,6 @@
         <div class="dict-senses-list">${sensesHtml}</div>
       </div>
     `;
-  }
 
     container.querySelectorAll('.btn-add-sense').forEach((btn) => {
       btn.addEventListener('click', async () => {
