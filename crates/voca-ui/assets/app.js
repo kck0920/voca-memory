@@ -213,6 +213,10 @@
           activeContent.classList.remove('hidden');
           activeContent.classList.add('active');
         }
+
+        if (target === 'study') {
+          loadStudyQueue();
+        }
       });
     });
   }
@@ -235,6 +239,8 @@
       queueCards = data.cards || [];
       currentCardIndex = 0;
       isCardFlipped = false;
+
+      updateDueHUD(data.reviews_remaining, data.new_remaining_today);
 
       if (queueCards.length === 0) {
         renderEmptyQueue(container);
@@ -369,6 +375,7 @@
 
       const outcome = await res.json();
       updateDashboardHUD(outcome);
+      refreshDueHUD();
 
       // 다음 카드로 이동
       currentCardIndex++;
@@ -415,6 +422,27 @@
         xpSpan.textContent = `${outcome.level.xp_into_level} / ${outcome.level.xp_span} XP`;
       }
     }
+  }
+
+  function updateDueHUD(reviews, newRemaining) {
+    const dueElem = document.querySelector('.due');
+    if (dueElem) {
+      const bTags = dueElem.querySelectorAll('b');
+      if (bTags.length >= 2) {
+        if (reviews !== undefined && reviews !== null) bTags[0].textContent = reviews;
+        if (newRemaining !== undefined && newRemaining !== null) bTags[1].textContent = newRemaining;
+      }
+    }
+  }
+
+  async function refreshDueHUD() {
+    try {
+      const res = await api('/api/study/queue', { method: 'GET' });
+      if (res.ok) {
+        const d = await res.json();
+        updateDueHUD(d.reviews_remaining, d.new_remaining_today);
+      }
+    } catch (_) {}
   }
 
   // ── 단어 사전 검색 및 추가 ─────────────────────────────────
@@ -539,6 +567,7 @@
 
           btn.textContent = '✔ 추가됨';
           btn.classList.add('added');
+          refreshDueHUD();
         } catch (e) {
           btn.textContent = '오류';
         }
@@ -591,6 +620,7 @@
 
         showMsg(msg, `✔ "${lemma} (${definition})" 카드가 등록되었습니다!`, 'success');
         form.reset();
+        refreshDueHUD();
       } catch (err) {
         showMsg(msg, '[오류] 서버 통신 실패', 'error');
       }
