@@ -12,6 +12,7 @@
 use std::sync::Arc;
 use std::time::Duration as StdDuration;
 
+use serde::Deserialize;
 use tokio::time::timeout;
 use voca_store::UpsertDictionaryWord;
 use voca_store_sqlite::{FetchStatus, SqliteStore};
@@ -143,7 +144,12 @@ impl Dictionary {
             }
         }
 
-        // 2. 네트워크
+        // 2. 이미 로컬 DB에 등록된 사전 단어인지 확인 (시드 단어 또는 이전 저장 단어)
+        if let Ok(Some(word_view)) = self.store.find_dictionary_word_by_lemma(lemma).await {
+            return Lookup::FromCache(Box::new(word_view));
+        }
+
+        // 3. 네트워크
         let url = format!("{}{}", self.endpoint, url_escape(lemma));
         let fetched = match timeout(FETCH_TIMEOUT, self.client.get(&url).send()).await {
             Ok(Ok(response)) => {
@@ -162,6 +168,9 @@ impl Dictionary {
                         .store
                         .dict_cache_put(lemma, "", FetchStatus::Error, FAILURE_TTL_SECONDS)
                         .await;
+                    if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
+                        return fallback;
+                    }
                     return Lookup::Unavailable;
                 }
                 if let Err(e) = self
@@ -180,6 +189,9 @@ impl Dictionary {
                     .store
                     .dict_cache_put(lemma, "", FetchStatus::Error, FAILURE_TTL_SECONDS)
                     .await;
+                if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
+                    return fallback;
+                }
                 return Lookup::Unavailable;
             }
             Err(_) => {
@@ -187,6 +199,9 @@ impl Dictionary {
                 // 알 수 없다. 새 요청을 시도하지 않는다. 너무 느린 API 를 반복 호출하면
                 // 그것도 DoS 다.
                 tracing::warn!(lemma, "사전 API 응답이 시간 내에 오지 않았다");
+                if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
+                    return fallback;
+                }
                 return Lookup::Unavailable;
             }
         };
@@ -232,6 +247,82 @@ impl Dictionary {
             }
         }
     }
+
+    /// 기본 사전 API가 일시 장애일 때 Datamuse API에서 뜻을 가져온다.
+    async fn try_datamuse_fallback(&self, lemma: &str) -> Option<Lookup> {
+        if self.endpoint != "https://api.dictionaryapi.dev/api/v2/entries/en/" {
+            return None;
+        }
+
+        let url = format!(
+            "https://api.datamuse.com/words?sp={}&md=d&max=1",
+            url_escape(lemma)
+        );
+        let res = match timeout(FETCH_TIMEOUT, self.client.get(&url).send()).await {
+            Ok(Ok(r)) if r.status().is_success() => r,
+            _ => return None,
+        };
+
+        let items: Vec<DatamuseItem> = res.json().await.ok()?;
+        let item = items
+            .into_iter()
+            .find(|i| i.word.eq_ignore_ascii_case(lemma))?;
+
+        if item.defs.is_empty() {
+            return None;
+        }
+
+        let mut senses = Vec::new();
+        for d in item.defs {
+            let (pos_str, def_str) = match d.split_once('\t') {
+                Some((p, rest)) => (p.trim(), rest.trim()),
+                None => ("", d.trim()),
+            };
+            if def_str.is_empty() {
+                continue;
+            }
+            let pos = match pos_str {
+                "n" => Some("noun".to_owned()),
+                "v" => Some("verb".to_owned()),
+                "adj" => Some("adjective".to_owned()),
+                "adv" => Some("adverb".to_owned()),
+                "" => None,
+                other => Some(other.to_owned()),
+            };
+            senses.push(voca_store::DictionarySense {
+                kind: voca_domain::SenseKind::Word,
+                pos,
+                definition: def_str.to_owned(),
+                example_en: None,
+                example_ko: None,
+            });
+        }
+
+        if senses.is_empty() {
+            return None;
+        }
+
+        let input = UpsertDictionaryWord {
+            lemma: item.word,
+            phonetic: None,
+            senses,
+        };
+
+        match self.store.upsert_dictionary_word(input.clone()).await {
+            Ok(view) => Some(Lookup::Fetched(Box::new(view))),
+            Err(e) => {
+                tracing::warn!(error = ?e, lemma, "Datamuse 사전 단어를 저장하지 못했다");
+                Some(Lookup::FetchedUnstored(Box::new(input)))
+            }
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct DatamuseItem {
+    word: String,
+    #[serde(default)]
+    defs: Vec<String>,
 }
 
 /// 표기형을 URL 조각으로 바꾼다.
@@ -286,5 +377,38 @@ mod tests {
 
         assert!(dict.lookup("   ").await.is_not_found());
         assert!(dict.lookup("").await.is_not_found());
+    }
+
+    #[tokio::test]
+    async fn a_word_already_in_store_is_served_without_network() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let store = voca_store_sqlite::SqliteStore::open(&dir.path().join("v.db"))
+            .await
+            .unwrap();
+
+        store
+            .upsert_dictionary_word(UpsertDictionaryWord {
+                lemma: "run".to_owned(),
+                phonetic: Some("/rʌn/".to_owned()),
+                senses: vec![voca_store::DictionarySense {
+                    kind: voca_domain::SenseKind::Word,
+                    pos: Some("verb".to_owned()),
+                    definition: "To move quickly".to_owned(),
+                    example_en: None,
+                    example_ko: None,
+                }],
+            })
+            .await
+            .unwrap();
+
+        let dict = Dictionary::new(store).with_endpoint("http://127.0.0.1:1/never");
+        let result = dict.lookup("run").await;
+        match result {
+            Lookup::FromCache(w) => {
+                assert_eq!(w.lemma, "run");
+                assert_eq!(w.senses[0].definition, "To move quickly");
+            }
+            other => panic!("스토어에 있는 단어는 FromCache 로 와야 한다: {:?}", other),
+        }
     }
 }

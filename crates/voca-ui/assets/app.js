@@ -446,14 +446,25 @@
   }
 
   function renderDictResults(data, container) {
-    if (!data || !data.senses || data.senses.length === 0) {
+    if (!data) {
       container.innerHTML = `<p class="empty-note">검색된 뜻이 없습니다.</p>`;
       return;
     }
 
-    const phonetic = data.phonetic ? `<span class="dict-phonetic">${escapeHtml(data.phonetic)}</span>` : '';
+    if (data.status === 'unavailable') {
+      container.innerHTML = `<p class="empty-note">외부 사전 서비스에 일시적으로 연결할 수 없습니다. 아래 '나만의 뜻 직접 등록하기'에서 직접 뜻을 등록해 보세요.</p>`;
+      return;
+    }
 
-    let sensesHtml = data.senses
+    const word = data.word;
+    if (!word || !word.senses || word.senses.length === 0) {
+      container.innerHTML = `<p class="empty-note">검색된 뜻이 없습니다. 아래 '나만의 뜻 직접 등록하기'에서 직접 등록하실 수 있습니다.</p>`;
+      return;
+    }
+
+    const phonetic = word.phonetic ? `<span class="dict-phonetic">${escapeHtml(word.phonetic)}</span>` : '';
+
+    let sensesHtml = word.senses
       .map((s, idx) => {
         const pos = s.pos ? `<span class="pos-badge">${escapeHtml(s.pos)}</span>` : '';
         const ex = s.example_en ? `<div class="dict-example">"${escapeHtml(s.example_en)}"</div>` : '';
@@ -466,7 +477,7 @@
             </div>
             ${ex}
             <button type="button" class="btn-add-sense mini-btn" 
-                    data-lemma="${escapeHtml(data.lemma)}"
+                    data-lemma="${escapeHtml(word.lemma)}"
                     data-pos="${escapeHtml(s.pos || '')}"
                     data-def="${escapeHtml(s.definition)}"
                     data-ex="${escapeHtml(s.example_en || '')}">
@@ -480,12 +491,13 @@
     container.innerHTML = `
       <div class="dict-word-card">
         <div class="dict-word-header">
-          <h3 class="dict-lemma">${escapeHtml(data.lemma)}</h3>
+          <h3 class="dict-lemma">${escapeHtml(word.lemma)}</h3>
           ${phonetic}
         </div>
         <div class="dict-senses-list">${sensesHtml}</div>
       </div>
     `;
+  }
 
     container.querySelectorAll('.btn-add-sense').forEach((btn) => {
       btn.addEventListener('click', async () => {

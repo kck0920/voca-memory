@@ -676,6 +676,26 @@ impl Store for SqliteStore {
 // ── 행 → 보기 변환과 파생값 ──────────────────────────────
 
 impl SqliteStore {
+    /// 사전 단어(`source = 'dictionary'`)를 표기형으로 직접 찾는다.
+    ///
+    /// 시드로 적재됐거나 이전에 캐시된 단어가 네트워크 없이 즉시 반환될 수 있도록 한다.
+    pub async fn find_dictionary_word_by_lemma(&self, lemma: &str) -> StoreResult<Option<WordView>> {
+        let row: Option<WordDb> = sqlx::query_as(
+            "SELECT id, lemma, source, phonetic, audio_url, rev FROM words
+             WHERE lemma = ?1 COLLATE NOCASE AND source = 'dictionary'
+             LIMIT 1",
+        )
+        .bind(lemma)
+        .fetch_optional(self.pool())
+        .await
+        .map_err(classify)?;
+
+        match row {
+            Some(r) => self.word_view(r).await.map(Some),
+            None => Ok(None),
+        }
+    }
+
     async fn word_view(&self, row: WordDb) -> StoreResult<WordView> {
         let senses = sqlx::query_as::<_, SenseDb>(
             "SELECT id, word_id, kind, source, pos, definition, example_en, example_ko, rev
