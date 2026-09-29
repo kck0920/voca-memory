@@ -110,8 +110,37 @@ body {
 }
 
 /* ── 제목 ───────────────────────────────────────────────────────────── */
+.brand-group {
+  margin: 0 0 32px;
+}
+
+.brand-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 2px solid var(--edge);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+.brand-icon {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 10px rgba(110, 242, 176, 0.45));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.brand-icon:hover {
+  transform: scale(1.06);
+  filter: drop-shadow(0 0 16px rgba(110, 242, 176, 0.75));
+}
+
 .brand {
-  margin: 0 0 8px;
+  margin: 0;
   font-family: var(--mono);
   font-size: clamp(2rem, 7vw, 3.5rem);
   font-weight: 700;
@@ -119,13 +148,11 @@ body {
   text-transform: uppercase;
   color: var(--mint);
   text-shadow: 4px 4px 0 rgba(110, 242, 176, 0.22);
-  display: block;
-  border-bottom: 2px solid var(--edge);
-  padding-bottom: 12px;
+  line-height: 1.1;
 }
 
 .brand-sub {
-  margin: 0 0 32px;
+  margin: 0;
   font-family: var(--sans);
   font-size: 0.85rem;
   font-weight: 500;

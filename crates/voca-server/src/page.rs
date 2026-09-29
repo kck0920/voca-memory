@@ -84,3 +84,94 @@ fn html(body: String) -> Response {
     )
         .into_response()
 }
+
+/// 브라우저 탭 및 고해상도 디스플레이용 SVG 파비콘.
+pub async fn favicon_svg() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/svg+xml"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        include_str!("../../voca-ui/assets/favicon.svg"),
+    )
+        .into_response()
+}
+
+/// 마스터 벡터 아이콘.
+pub async fn icon_svg() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/svg+xml"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        include_str!("../../voca-ui/assets/icon.svg"),
+    )
+        .into_response()
+}
+
+/// 구형 브라우저 및 크롤러 호환용 ICO 파비콘.
+pub async fn favicon_ico() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/x-icon"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        &include_bytes!("../../voca-ui/assets/favicon.ico")[..],
+    )
+        .into_response()
+}
+
+/// 32x32 PNG 파비콘.
+pub async fn favicon_png_32() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        &include_bytes!("../../voca-ui/assets/favicon-32x32.png")[..],
+    )
+        .into_response()
+}
+
+/// 16x16 PNG 파비콘.
+pub async fn favicon_png_16() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        &include_bytes!("../../voca-ui/assets/favicon-16x16.png")[..],
+    )
+        .into_response()
+}
+
+/// iOS 홈 화면 바로가기용 애플 터치 아이콘.
+pub async fn apple_touch_icon() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        &include_bytes!("../../voca-ui/assets/apple-touch-icon.png")[..],
+    )
+        .into_response()
+}
+
+/// 웹앱 매니페스트 (PWA 및 데스크톱 앱 지원).
+pub async fn manifest_webmanifest() -> Response {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "application/manifest+json"),
+            (header::CACHE_CONTROL, "public, max-age=86400"),
+        ],
+        include_str!("../../voca-ui/assets/manifest.webmanifest"),
+    )
+        .into_response()
+}

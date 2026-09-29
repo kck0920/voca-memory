@@ -431,3 +431,27 @@ async fn the_page_does_not_leak_one_users_dashboard_to_another() {
     assert_eq!(pa.status, 200);
     assert_eq!(pb.status, 200);
 }
+
+#[tokio::test]
+async fn favicon_and_icons_are_served_with_correct_content_types() {
+    let h = Harness::start().await;
+
+    let svg = h.get("/favicon.svg", None).await;
+    assert_eq!(svg.status, 200);
+    assert_eq!(svg.header("content-type"), Some("image/svg+xml"));
+    assert!(svg.body.contains("<svg"));
+
+    let ico = h.get("/favicon.ico", None).await;
+    assert_eq!(ico.status, 200);
+    assert_eq!(ico.header("content-type"), Some("image/x-icon"));
+
+    let touch = h.get("/apple-touch-icon.png", None).await;
+    assert_eq!(touch.status, 200);
+    assert_eq!(touch.header("content-type"), Some("image/png"));
+
+    let manifest = h.get("/manifest.webmanifest", None).await;
+    assert_eq!(manifest.status, 200);
+    assert_eq!(manifest.header("content-type"), Some("application/manifest+json"));
+    assert!(manifest.body.contains("Voca Memory"));
+}
+

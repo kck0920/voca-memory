@@ -63,7 +63,39 @@ Card·Deck·Sense를 지우면 `deleted_at`(또는 `archived_at`)이 찍힌다. 
 
 ---
 
-## 서버 띄우기
+## 리눅스 데스크톱 앱으로 등록하고 실행하기
+
+이 웹 애플리케이션을 리눅스(KDE, GNOME 등 FreeDesktop 표준) 데스크톱 앱으로 등록하여
+런처 메뉴 검색과 전용 독립 앱 창 모드로 실행할 수 있습니다.
+
+### 1. 앱 등록 (최초 1회)
+
+```bash
+./scripts/install-desktop.sh
+```
+
+- 시스템 아이콘 경로(`~/.local/share/icons/hicolor/`)에 벡터 SVG 및 멀티사이즈 PNG(128, 64, 48, 32, 16px) 아이콘이 설치됩니다.
+- 애플리케이션 엔트리(`~/.local/share/applications/voca-memory.desktop`)가 생성되어 시스템 앱 메뉴/검색에 즉시 노출됩니다.
+
+### 2. 앱 실행
+
+- **시스템 런처 / 검색**: KRunner, Kickoff, GNOME 애플리케이션 검색에서 `Voca Memory` 검색 후 실행
+- **터미널 실행**:
+  ```bash
+  ./scripts/launch-desktop.sh
+  ```
+
+런처는 백그라운드에서 `voca-server`가 동작 중인지 확인하고, 꺼져 있다면 전용 DB(`~/.local/share/voca-memory/voca.db`)와 함께 자동 기동한 뒤 브라우저를 전용 앱 창(`--app=...`)으로 띄웁니다.
+
+### 3. 등록 해제 (언인스톨)
+
+```bash
+./scripts/uninstall-desktop.sh
+```
+
+---
+
+## 서버 직접 띄우기 (개발자/서버 모드)
 
 먼저 툴체인이 sqlx의 요구를 만족해야 한다. `Cargo.lock`의 sqlx 0.9.0은 **rustc
 1.94+** 를 요구하는데 워크스페이스 `rust-version`(`1.88`)보다 높다. 1.88에서는

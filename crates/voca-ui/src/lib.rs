@@ -24,7 +24,20 @@ pub fn App(initial: DashboardView) -> impl IntoView {
         <main class="app">
             <header class="app-topbar">
                 <div class="brand-group">
-                    <h1 class="brand">"Voca Memory"</h1>
+                    <div class="brand-title-wrap">
+                        <span class="brand-icon" aria-hidden="true">
+                            <svg viewBox="0 0 64 64" width="46" height="46" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="2" y="2" width="60" height="60" rx="14" fill="#0d0e18" stroke="#2c3150" stroke-width="2"/>
+                                <rect x="6" y="6" width="52" height="52" rx="10" fill="#171a2b" stroke="#1f2338" stroke-width="1.5"/>
+                                <path d="M2 20h4 M2 32h4 M2 44h4 M58 20h4 M58 32h4 M58 44h4 M20 2v4 M32 2v4 M44 2v4 M20 58v4 M32 58v4 M44 58v4" stroke="#ffb454" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M12 20h8l6 10 M52 20h-8l-6 10 M14 46h10l8-10 M50 46h-10l-8-10" stroke="#5cc8ff" stroke-width="1.5" stroke-linecap="round" opacity="0.45"/>
+                                <path d="M16 16 L32 46 L48 16" fill="none" stroke="#6ef2b0" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <rect x="26" y="24" width="12" height="12" rx="2.5" fill="#ffb454" stroke="#ffe082" stroke-width="1.2"/>
+                                <circle cx="32" cy="30" r="2" fill="#0d0e18"/>
+                            </svg>
+                        </span>
+                        <h1 class="brand">"Voca Memory"</h1>
+                    </div>
                     <p class="brand-sub">"영어 어휘장 · 복습 터미널"</p>
                 </div>
                 <div id="auth-status" class="auth-status"></div>
@@ -179,12 +192,21 @@ pub fn render_page(initial: DashboardView, script_src: &str) -> String {
     let js = include_str!("../assets/app.js");
 
     format!(
-        r#"<!DOCTYPE html>
+        r##"<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Voca Memory</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="alternate icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0d0e18">
+<meta name="application-name" content="Voca Memory">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>{css}</style>
 </head>
 <body>
@@ -194,7 +216,7 @@ pub fn render_page(initial: DashboardView, script_src: &str) -> String {
 <script>{js}</script>
 </body>
 </html>
-"#,
+"##,
         data_id = view::DATA_ELEMENT_ID,
     )
 }
@@ -236,6 +258,7 @@ mod tests {
         assert!(page.contains(view::DATA_ELEMENT_ID), "{page}");
         // 본문이 비어 있으면 안 된다 — 마크업만 나오는 페이지는 아무것도 못 한다.
         assert!(page.contains("Voca Memory"), "{page}");
+        assert!(page.contains("/favicon.svg"), "{page}");
     }
 
     #[cfg(feature = "ssr")]

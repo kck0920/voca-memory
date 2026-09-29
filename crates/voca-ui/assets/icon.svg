@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <!-- CRT / Neon Glow Filter -->
+    <filter id="neon-glow-lg" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur1" />
+      <feGaussianBlur stdDeviation="5" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <linearGradient id="mint-glow-lg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5cc8ff" />
+      <stop offset="45%" stop-color="#6ef2b0" />
+      <stop offset="100%" stop-color="#38c97e" />
+    </linearGradient>
+
+    <linearGradient id="core-glow-lg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff59d" />
+      <stop offset="60%" stop-color="#ffb454" />
+      <stop offset="100%" stop-color="#ff8f00" />
+    </linearGradient>
+
+    <linearGradient id="chip-bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#141829" />
+      <stop offset="100%" stop-color="#090a12" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Board Shadow -->
+  <rect x="10" y="10" width="112" height="112" rx="28" fill="#000" opacity="0.6" />
+
+  <!-- Main Chip PCB Body -->
+  <rect x="6" y="6" width="116" height="116" rx="26" fill="url(#chip-bg)" stroke="#2c3150" stroke-width="3"/>
+  <rect x="12" y="12" width="104" height="104" rx="20" fill="#101322" stroke="#1f2338" stroke-width="2"/>
+
+  <!-- Gold/Bronze Outer Connector Pins -->
+  <g stroke="#ffb454" stroke-width="3" stroke-linecap="round" opacity="0.85">
+    <!-- Top & Bottom Pins -->
+    <path d="M36 6v6 M50 6v6 M64 6v6 M78 6v6 M92 6v6" />
+    <path d="M36 116v6 M50 116v6 M64 116v6 M78 116v6 M92 116v6" />
+    <!-- Left & Right Pins -->
+    <path d="M6 36h6 M6 50h6 M6 64h6 M6 78h6 M6 92h6" />
+    <path d="M116 36h6 M116 50h6 M116 64h6 M116 78h6 M116 92h6" />
+  </g>
+
+  <!-- Circuit Traces & Memory Bus Lines (Cyan & Dim Mint) -->
+  <g stroke="#5cc8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5">
+    <path d="M22 36 h14 l10 12" />
+    <path d="M106 36 h-14 l-10 12" />
+    <path d="M22 92 h16 l12 -12" />
+    <path d="M106 92 h-16 l-12 -12" />
+    <path d="M36 22 v10 l8 8" />
+    <path d="M92 22 v10 l-8 8" />
+    <path d="M64 18 v16" />
+    <path d="M64 94 v16" />
+  </g>
+
+  <!-- Circuit Nodes / Solder Pads -->
+  <g fill="#5cc8ff" opacity="0.8">
+    <circle cx="22" cy="36" r="2.5" />
+    <circle cx="106" cy="36" r="2.5" />
+    <circle cx="22" cy="92" r="2.5" />
+    <circle cx="106" cy="92" r="2.5" />
+    <circle cx="36" cy="22" r="2.5" />
+    <circle cx="92" cy="22" r="2.5" />
+  </g>
+
+  <!-- Vocabulary Flashcard Silhouette (Left Wing Accent) -->
+  <g opacity="0.35" stroke="#6ef2b0" stroke-width="1.8" fill="rgba(110, 242, 176, 0.08)" stroke-linejoin="round">
+    <rect x="30" y="32" width="22" height="28" rx="3" />
+    <line x1="34" y1="38" x2="46" y2="38" />
+    <line x1="34" y1="43" x2="48" y2="43" />
+    <line x1="34" y1="48" x2="42" y2="48" />
+  </g>
+
+  <!-- Main 'V' Geometric Monogram (Neon Mint Beam) -->
+  <path d="M28 28 L64 96 L100 28"
+        fill="none"
+        stroke="url(#mint-glow-lg)"
+        stroke-width="10"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#neon-glow-lg)"/>
+
+  <!-- Secondary Sharp Inner 'V' Highlight -->
+  <path d="M33 33 L64 91 L95 33"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        opacity="0.85"/>
+
+  <!-- Central Memory Core / FSRS Stability Engine -->
+  <g filter="url(#neon-glow-lg)">
+    <!-- Core Socket Frame -->
+    <rect x="50" y="48" width="28" height="28" rx="5" fill="#171a2b" stroke="#ffb454" stroke-width="2" />
+    <!-- Core Golden Microchip Die -->
+    <rect x="54" y="52" width="20" height="20" rx="3" fill="url(#core-glow-lg)" />
+    <!-- Die Detail / Neural Solder Tracks -->
+    <circle cx="64" cy="62" r="4" fill="#0d0e18" />
+    <circle cx="64" cy="62" r="2" fill="#fff59d" />
+  </g>
+
+  <!-- Core Pinouts -->
+  <g stroke="#ffb454" stroke-width="2" stroke-linecap="round">
+    <path d="M46 56 h4 M46 62 h4 M46 68 h4" />
+    <path d="M78 56 h4 M78 62 h4 M78 68 h4" />
+    <path d="M56 44 v4 M62 44 v4 M68 44 v4" />
+    <path d="M56 76 v4 M62 76 v4 M68 76 v4" />
+  </g>
+</svg>
