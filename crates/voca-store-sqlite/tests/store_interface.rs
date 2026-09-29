@@ -274,6 +274,26 @@ async fn adding_the_same_sense_twice_is_silently_skipped() {
 }
 
 #[tokio::test]
+async fn putting_the_same_user_sense_twice_reuses_existing_sense() {
+    let w = World::setup().await;
+    let input = NewUserSense {
+        lemma: "comprehensive".into(),
+        kind: SenseKind::Word,
+        definition: "포괄적인".into(),
+        example_en: Some("A comprehensive guide.".into()),
+        pos: Some("adj".into()),
+    };
+    let first = w.store.put_user_sense(w.user, input.clone()).await.unwrap();
+    let second = w.store.put_user_sense(w.user, input).await.unwrap();
+    assert_eq!(first.id, second.id, "동일한 뜻의 Sense ID가 일치하지 않는다");
+
+    let c1 = w.store.add_cards(w.user, w.deck, &[first.id]).await.unwrap();
+    assert_eq!(c1.len(), 1);
+    let c2 = w.store.add_cards(w.user, w.deck, &[second.id]).await.unwrap();
+    assert!(c2.is_empty(), "중복 카드가 추가되었다");
+}
+
+#[tokio::test]
 async fn the_new_card_daily_limit_is_enforced() {
     let w = World::setup().await;
     // 덱의 new_per_day 는 3. 5개를 넣어도 3개만 나온다.

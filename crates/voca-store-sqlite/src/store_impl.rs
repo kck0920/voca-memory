@@ -160,23 +160,43 @@ impl Store for SqliteStore {
         let word_id = self
             .ensure_user_word(&mut tx, &user.to_string(), input.lemma.trim(), now)
             .await?;
-        let id = new_id();
 
-        sqlx::query(
-            "INSERT INTO senses
-                 (id, word_id, kind, source, pos, definition, example_en, updated_at, rev)
-             VALUES (?1, ?2, ?3, 'user', ?4, ?5, ?6, ?7, 1)",
+        // 이미 같은 Word 아래에 동일한 뜻풀이의 Sense 가 있다면 새 ID 를 발급하지
+        // 않고 재사용한다. 그렇게 하지 않으면 같은 뜻을 여러 번 추가할 때마다 새 Sense 가
+        // 생겨 `cards` 테이블의 (deck_id, sense_id) UNIQUE 제약을 우회하고 중복 카드가 복제된다.
+        let existing: Option<String> = sqlx::query_scalar(
+            "SELECT id FROM senses
+             WHERE word_id = ?1 AND definition = ?2 AND archived_at IS NULL
+             LIMIT 1",
         )
-        .bind(&id)
         .bind(&word_id)
-        .bind(kind_name(input.kind))
-        .bind(input.pos.as_deref().map(str::trim))
         .bind(input.definition.trim())
-        .bind(input.example_en.as_deref().map(str::trim))
-        .bind(now)
-        .execute(&mut *tx)
+        .fetch_optional(&mut *tx)
         .await
         .map_err(classify)?;
+
+        let id = match existing {
+            Some(existing_id) => existing_id,
+            None => {
+                let new_id = new_id();
+                sqlx::query(
+                    "INSERT INTO senses
+                         (id, word_id, kind, source, pos, definition, example_en, updated_at, rev)
+                     VALUES (?1, ?2, ?3, 'user', ?4, ?5, ?6, ?7, 1)",
+                )
+                .bind(&new_id)
+                .bind(&word_id)
+                .bind(kind_name(input.kind))
+                .bind(input.pos.as_deref().map(str::trim))
+                .bind(input.definition.trim())
+                .bind(input.example_en.as_deref().map(str::trim))
+                .bind(now)
+                .execute(&mut *tx)
+                .await
+                .map_err(classify)?;
+                new_id
+            }
+        };
 
         tx.commit().await.map_err(classify)?;
         self.sense_view_by_id(&id).await

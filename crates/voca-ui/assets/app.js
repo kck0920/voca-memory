@@ -557,7 +557,7 @@
 
           // 2. 덱에 추가
           const deckId = await ensureActiveDeckId();
-          await api('/api/decks/cards', {
+          const cRes = await api('/api/decks/cards', {
             method: 'POST',
             body: JSON.stringify({
               deck_id: deckId,
@@ -565,8 +565,14 @@
             }),
           });
 
-          btn.textContent = '✔ 추가됨';
-          btn.classList.add('added');
+          const addedCards = await cRes.json().catch(() => []);
+          if (Array.isArray(addedCards) && addedCards.length > 0) {
+            btn.textContent = '✔ 추가됨';
+            btn.classList.add('added');
+          } else {
+            btn.textContent = '이미 추가됨';
+            btn.classList.add('already-added');
+          }
           refreshDueHUD();
         } catch (e) {
           btn.textContent = '오류';
@@ -610,7 +616,7 @@
         const senseData = await sRes.json();
         const deckId = await ensureActiveDeckId();
 
-        await api('/api/decks/cards', {
+        const cRes = await api('/api/decks/cards', {
           method: 'POST',
           body: JSON.stringify({
             deck_id: deckId,
@@ -618,7 +624,12 @@
           }),
         });
 
-        showMsg(msg, `✔ "${lemma} (${definition})" 카드가 등록되었습니다!`, 'success');
+        const addedCards = await cRes.json().catch(() => []);
+        if (Array.isArray(addedCards) && addedCards.length > 0) {
+          showMsg(msg, `✔ "${lemma} (${definition})" 카드가 등록되었습니다!`, 'success');
+        } else {
+          showMsg(msg, `이미 덱에 등록되어 있는 단어(뜻)입니다.`, 'info');
+        }
         form.reset();
         refreshDueHUD();
       } catch (err) {
