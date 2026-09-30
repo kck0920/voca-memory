@@ -141,12 +141,25 @@ impl Dictionary {
             return None;
         }
 
-        let url = format!(
+        // 1. 한국어 직통 번역이 있는 예문 우선 탐색
+        let url_ko = format!(
             "https://tatoeba.org/en/api_v0/search?from=eng&to=kor&query={}&sort=relevance",
             url_escape_query(lemma)
         );
+        if let Some(res) = self.search_tatoeba_url(&url_ko, lemma).await {
+            return Some(res);
+        }
 
-        let res = match timeout(FETCH_TIMEOUT, self.client.get(&url).send()).await {
+        // 2. 전체 영어 예문 탐색 (한국어 직통 번역이 없더라도 양질의 원어민 문장 확보)
+        let url_en = format!(
+            "https://tatoeba.org/en/api_v0/search?from=eng&query={}&sort=relevance",
+            url_escape_query(lemma)
+        );
+        self.search_tatoeba_url(&url_en, lemma).await
+    }
+
+    async fn search_tatoeba_url(&self, url: &str, lemma: &str) -> Option<(String, String)> {
+        let res = match timeout(FETCH_TIMEOUT, self.client.get(url).send()).await {
             Ok(Ok(r)) if r.status().is_success() => r,
             _ => return None,
         };
