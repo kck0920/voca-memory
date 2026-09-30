@@ -929,6 +929,18 @@ input[type="password"]:focus {
   line-height: 1.5;
 }
 
+.card-example-en {
+  font-size: 1.05rem;
+  color: var(--cyan);
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(100, 200, 255, 0.06);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
 .card-example-ko {
   font-size: 0.95rem;
   color: var(--ink-dim);
@@ -1304,5 +1316,103 @@ input[type="password"]:focus {
   font-size: 0.75rem;
   color: var(--ink-dim);
   margin-top: 4px;
+}
+
+/* ── 5. 한국어 사전 뜻 및 미국인 빈출 실생활 문장 ── */
+.dict-korean-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(110, 242, 176, 0.09);
+  border: 1px solid rgba(110, 242, 176, 0.35);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0 16px;
+}
+
+.ko-badge {
+  background: var(--mint);
+  color: #0b0f19;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.ko-meanings {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--mint);
+  letter-spacing: -0.01em;
+}
+
+.dict-us-sentence-card {
+  background: rgba(100, 200, 255, 0.06);
+  border: 1px solid rgba(100, 200, 255, 0.3);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 14px 0 18px;
+}
+
+.us-sentence-badge {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.us-sentence-en {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.us-sentence-ko {
+  font-size: 0.92rem;
+  color: var(--ink-dim);
+  margin: 6px 0 12px 0;
+  line-height: 1.4;
+}
+
+.dict-ko-def {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--mint);
+  margin-left: 6px;
+}
+
+.dict-en-def {
+  font-size: 0.84rem;
+  color: var(--ink-dim);
+  margin-top: 4px;
+  padding-left: 24px;
+  line-height: 1.35;
+}
+
+.btn-add-us-example {
+  background: rgba(100, 200, 255, 0.15);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 0.84rem;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-add-us-example:hover {
+  background: var(--cyan);
+  color: #0b0f19;
 }
 

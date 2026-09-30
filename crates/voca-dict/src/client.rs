@@ -111,6 +111,29 @@ impl Dictionary {
         self
     }
 
+    /// 단어나 문장의 미국식 원어민 TTS 오디오 스트림(MP3)을 가져온다.
+    pub async fn fetch_tts_audio(&self, text: &str) -> Option<Vec<u8>> {
+        let text = text.trim();
+        if text.is_empty() || text.len() > 300 {
+            return None;
+        }
+
+        let encoded = url_escape_query(text);
+        let url = format!(
+            "https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q={encoded}"
+        );
+
+        match timeout(FETCH_TIMEOUT, self.client.get(&url).send()).await {
+            Ok(Ok(resp)) if resp.status().is_success() => {
+                match resp.bytes().await {
+                    Ok(bytes) if !bytes.is_empty() => Some(bytes.to_vec()),
+                    _ => None,
+                }
+            }
+            _ => None,
+        }
+    }
+
     /// 표기형의 뜻들을 찾아 온다.
     pub async fn lookup(&self, lemma: &str) -> Lookup {
         let lemma = lemma.trim();
@@ -336,6 +359,26 @@ fn url_escape(raw: &str) -> String {
         .map(|c| if c == ' ' { '-' } else { c })
         .collect::<String>()
 }
+
+/// 쿼리 파라미터용 URL 인코딩. 공백을 '+'로 바꾸고 특수 문자를 퍼센트 인코딩한다.
+fn url_escape_query(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len() * 2);
+    for c in raw.chars() {
+        match c {
+            'a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' | '.' | '~' => out.push(c),
+            ' ' => out.push('+'),
+            other => {
+                let mut buf = [0u8; 4];
+                let s = other.encode_utf8(&mut buf);
+                for b in s.as_bytes() {
+                    out.push_str(&format!("%{:02X}", b));
+                }
+            }
+        }
+    }
+    out
+}
+
 
 #[cfg(test)]
 mod tests {

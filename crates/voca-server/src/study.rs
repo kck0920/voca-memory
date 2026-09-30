@@ -48,6 +48,7 @@ pub struct QueuedCardBody {
     /// 뜻풀이. 뒷면.
     pub definition: String,
     pub pos: Option<String>,
+    pub example_en: Option<String>,
     pub example_ko: Option<String>,
     pub is_new: bool,
 }
@@ -335,6 +336,7 @@ fn card_body(c: &voca_store::QueuedCard) -> QueuedCardBody {
         front,
         definition: c.sense.definition.clone(),
         pos: c.sense.pos.clone(),
+        example_en: c.sense.example_en.clone(),
         example_ko: c.sense.example_ko.clone(),
         is_new: c.memory_state.state == ReviewState::New,
     }

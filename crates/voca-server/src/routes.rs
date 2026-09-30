@@ -320,6 +320,36 @@ pub struct LookupQuery {
     pub lemma: String,
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct TtsQuery {
+    pub text: String,
+}
+
+pub async fn audio_tts(
+    State(state): State<AppState>,
+    axum::extract::Query(q): axum::extract::Query<TtsQuery>,
+) -> Response {
+    let text = q.text.trim();
+    if text.is_empty() || text.len() > 300 {
+        return axum::http::StatusCode::BAD_REQUEST.into_response();
+    }
+
+    match state.dictionary().fetch_tts_audio(text).await {
+        Some(bytes) => (
+            [
+                (axum::http::header::CONTENT_TYPE, "audio/mpeg"),
+                (
+                    axum::http::header::CACHE_CONTROL,
+                    "public, max-age=86400, stale-while-revalidate=604800",
+                ),
+            ],
+            bytes,
+        )
+            .into_response(),
+        None => axum::http::StatusCode::NOT_FOUND.into_response(),
+    }
+}
+
 /// 표기형 길이 상한.
 ///
 /// 외부 요청을 그대로 URL 에 넣어 보낸다. 상한이 없으면 한 번에 아주 긴 문자열로

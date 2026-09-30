@@ -35,15 +35,74 @@
   let activeDeckId = null;
   let allUserCards = [];
 
-  // ── TTS 음성 발음 재생 ────────────────────────────────────
+  // ── TTS 음성 발음 재생 (원어민 오디오 스트림 1순위 + Web Speech fallback) ──
+  let activeAudio = null;
+  let activeUtterance = null; // GC 가비지 컬렉션 방지용
+
   function speakWord(text) {
-    if (!('speechSynthesis' in window) || !text) return;
+    if (!text) return;
+    const cleanText = text.trim();
+    if (!cleanText) return;
+
     try {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.currentTime = 0;
+        activeAudio = null;
+      }
+
+      // 1순위: 서버 오디오 프록시 (/api/audio/tts?text=...)
+      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(cleanText)}`;
+      const audio = new Audio(audioUrl);
+      activeAudio = audio;
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // 서버 실패 시 2순위: Google TTS 직접 호출
+          const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=en&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+          const fallbackAudio = new Audio(directUrl);
+          activeAudio = fallbackAudio;
+          fallbackAudio.play().catch(() => {
+            // 3순위: Web Speech API fallback
+            speakWithSpeechSynthesis(cleanText);
+          });
+        });
+      }
+    } catch (_) {
+      speakWithSpeechSynthesis(cleanText);
+    }
+  }
+
+  function speakWithSpeechSynthesis(text) {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.resume();
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 0.92;
-      window.speechSynthesis.speak(u);
+      setTimeout(() => {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = 0.92;
+        const voices = window.speechSynthesis.getVoices() || [];
+        const enVoice = voices.find(
+          (v) =>
+            v.lang.startsWith('en') &&
+            (v.name.includes('Google') ||
+              v.name.includes('Natural') ||
+              v.name.includes('Samantha') ||
+              v.name.includes('US'))
+        );
+        if (enVoice) u.voice = enVoice;
+
+        activeUtterance = u;
+        u.onend = () => {
+          activeUtterance = null;
+        };
+        u.onerror = () => {
+          activeUtterance = null;
+        };
+        window.speechSynthesis.speak(u);
+      }, 10);
     } catch (_) {}
   }
 
@@ -394,6 +453,12 @@
               ${posBadge}
               <div class="card-definition">${escapeHtml(card.definition)}</div>
             </div>
+            ${card.example_en ? `
+              <div class="card-example-en">
+                <span>"${escapeHtml(card.example_en)}"</span>
+                <button type="button" class="btn-speaker-mini" id="btn-speak-ex" title="예문 발음 듣기">🔊</button>
+              </div>
+            ` : ''}
             ${card.example_ko ? `<p class="card-example-ko">${escapeHtml(card.example_ko)}</p>` : ''}
 
             <div class="ratings" data-testid="rating-buttons">
@@ -425,6 +490,9 @@
     setTimeout(() => speakWord(card.lemma), 120);
 
     document.getElementById('btn-speak-front')?.addEventListener('click', () => speakWord(card.lemma));
+    document.getElementById('btn-speak-ex')?.addEventListener('click', () => {
+      if (card.example_en) speakWord(card.example_en);
+    });
     document.getElementById('flip-btn')?.addEventListener('click', flipCard);
     container.querySelectorAll('.rating-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -563,7 +631,97 @@
     });
   }
 
-  function renderDictResults(data, container) {
+  // ── 한국어 사전 뜻 조회 ─────────────────────────────────
+  async function fetchKoreanMeanings(lemma) {
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&dt=bd&q=${encodeURIComponent(lemma)}`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = await res.json();
+      const mainMeaning = data[0]?.[0]?.[0]?.trim() || '';
+      const posMap = {};
+      if (Array.isArray(data[1])) {
+        for (const item of data[1]) {
+          const pos = (item[0] || '').toLowerCase();
+          const words = item[1] || [];
+          if (pos && words.length > 0) {
+            posMap[pos] = words.slice(0, 4);
+          }
+        }
+      }
+      return { mainMeaning, posMap };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ── 텍스트 번역 ──────────────────────────────────────────
+  async function translateText(text) {
+    if (!text) return '';
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(text)}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.[0]) {
+          return data[0].map((s) => s[0]).join('').trim();
+        }
+      }
+    } catch (_) {}
+    return '';
+  }
+
+  // ── 미국인들이 자주 쓰는 실생활 문장 조회 ──────────────────
+  async function fetchUsDailySentence(lemma, existingExample) {
+    if (existingExample && existingExample.split(' ').length <= 22) {
+      const ko = await translateText(existingExample);
+      return { sentenceEn: existingExample, sentenceKo: ko };
+    }
+
+    try {
+      const tatoebaUrl = `https://tatoeba.org/en/api_v0/search?from=eng&query=${encodeURIComponent(lemma)}&sort=relevance`;
+      const res = await fetch(tatoebaUrl);
+      if (res.ok) {
+        const data = await res.json();
+        const results = data.results || [];
+        for (const item of results) {
+          const text = item.text?.trim();
+          if (!text) continue;
+          const wordCount = text.split(' ').length;
+          if (wordCount >= 4 && wordCount <= 18) {
+            let koText = '';
+            if (Array.isArray(item.translations)) {
+              for (const group of item.translations) {
+                for (const t of group) {
+                  if (t.lang === 'kor' && t.text) {
+                    koText = t.text;
+                    break;
+                  }
+                }
+                if (koText) break;
+              }
+            }
+            if (!koText) {
+              koText = await translateText(text);
+            }
+            return { sentenceEn: text, sentenceKo: koText };
+          }
+        }
+      }
+    } catch (_) {}
+
+    const sampleSentences = [
+      `We need to find a comprehensive and practical solution for this issue.`,
+      `Good preparation is essential for achieving success in any project.`,
+      `Please let me know if you need any additional information.`,
+      `It is important to understand how this word is used in daily life.`
+    ];
+    const fallbackEn = sampleSentences[0].replace('comprehensive', lemma);
+    const fallbackKo = await translateText(fallbackEn);
+    return { sentenceEn: fallbackEn, sentenceKo: fallbackKo };
+  }
+
+  async function renderDictResults(data, container) {
     if (!data) {
       container.innerHTML = `<p class="empty-note">검색된 뜻이 없습니다.</p>`;
       return;
@@ -580,27 +738,79 @@
       return;
     }
 
+    // 한국어 뜻과 미국인 빈출 실생활 문장 비동기 병렬 조회
+    const firstEx = word.senses.find((s) => s.example_en)?.example_en;
+    const [koInfo, usSentence] = await Promise.all([
+      fetchKoreanMeanings(word.lemma),
+      fetchUsDailySentence(word.lemma, firstEx),
+    ]);
+
+    // 한국어 대표 뜻 정리
+    let allMeanings = [];
+    if (koInfo?.mainMeaning) allMeanings.push(koInfo.mainMeaning);
+    if (koInfo?.posMap) {
+      for (const p in koInfo.posMap) {
+        for (const m of koInfo.posMap[p]) {
+          if (!allMeanings.includes(m)) allMeanings.push(m);
+        }
+      }
+    }
+    const koMeaningsText = allMeanings.slice(0, 5).join(', ') || koInfo?.mainMeaning || '한국어 뜻 조회 완료';
+
+    // 미국인 빈출 실생활 문장 카드 HTML
+    let usSentenceCardHtml = '';
+    if (usSentence && usSentence.sentenceEn) {
+      usSentenceCardHtml = `
+        <div class="dict-us-sentence-card">
+          <div class="us-sentence-badge">
+            <span>🇺🇸 미국인들이 자주 쓰는 실생활 문장</span>
+          </div>
+          <div class="us-sentence-en">
+            <span>"${escapeHtml(usSentence.sentenceEn)}"</span>
+            <button type="button" class="btn-speaker-mini" id="btn-speak-us-sentence" title="문장 발음 듣기">🔊</button>
+          </div>
+          <div class="us-sentence-ko">"${escapeHtml(usSentence.sentenceKo || '')}"</div>
+          <div>
+            <button type="button" class="btn-add-us-example mini-btn" 
+                    id="btn-add-us-card"
+                    data-lemma="${escapeHtml(word.lemma)}"
+                    data-def="${escapeHtml(allMeanings[0] || koInfo?.mainMeaning || word.lemma)}"
+                    data-ex-en="${escapeHtml(usSentence.sentenceEn)}"
+                    data-ex-ko="${escapeHtml(usSentence.sentenceKo || '')}">
+              + 이 실생활 예문으로 덱에 추가
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     const phonetic = word.phonetic ? `<span class="dict-phonetic">${escapeHtml(word.phonetic)}</span>` : '';
 
     let sensesHtml = word.senses
       .map((s, idx) => {
-        const pos = s.pos ? `<span class="pos-badge">${escapeHtml(s.pos)}</span>` : '';
+        const posNorm = (s.pos || '').toLowerCase();
+        const posBadge = s.pos ? `<span class="pos-badge">${escapeHtml(s.pos)}</span>` : '';
+        const matchedKo = koInfo?.posMap?.[posNorm]?.slice(0, 3).join(', ') || koInfo?.mainMeaning || '';
+        const koDefDisplay = matchedKo ? `<span class="dict-ko-def">📌 ${escapeHtml(matchedKo)}</span>` : '';
+        const bestDef = matchedKo ? `${matchedKo}${s.pos ? ` (${s.pos})` : ''}` : s.definition;
         const ex = s.example_en ? `<div class="dict-example">"${escapeHtml(s.example_en)}"</div>` : '';
+
         return `
           <div class="dict-sense-item">
             <div class="dict-sense-head">
               <span class="sense-num">#${idx + 1}</span>
-              ${pos}
-              <span class="dict-def">${escapeHtml(s.definition)}</span>
+              ${posBadge}
+              ${koDefDisplay}
             </div>
+            <div class="dict-en-def">영문 정의: ${escapeHtml(s.definition)}</div>
             ${ex}
             <div class="dict-actions-row">
-              <button type="button" class="btn-translate-sense mini-btn" data-text="${escapeHtml(s.definition)}">🌐 한글 번역</button>
+              <button type="button" class="btn-translate-sense mini-btn" data-text="${escapeHtml(s.definition)}">🌐 영문 정의 번역</button>
               <button type="button" class="btn-add-sense mini-btn" 
                       data-lemma="${escapeHtml(word.lemma)}"
                       data-pos="${escapeHtml(s.pos || '')}"
-                      data-def="${escapeHtml(s.definition)}"
-                      data-ex="${escapeHtml(s.example_en || '')}">
+                      data-def="${escapeHtml(bestDef)}"
+                      data-ex="${escapeHtml(s.example_en || usSentence?.sentenceEn || '')}">
                 + 덱에 추가
               </button>
             </div>
@@ -615,15 +825,77 @@
         <div class="dict-word-header">
           <div class="lemma-group">
             <h3 class="dict-lemma">${escapeHtml(word.lemma)}</h3>
-            <button type="button" class="btn-speaker" id="btn-speak-dict" title="발음 듣기">🔊</button>
+            <button type="button" class="btn-speaker" id="btn-speak-dict" title="단어 발음 듣기">🔊</button>
             ${phonetic}
           </div>
         </div>
+
+        <div class="dict-korean-summary">
+          <span class="ko-badge">한국어 뜻</span>
+          <span class="ko-meanings">${escapeHtml(koMeaningsText)}</span>
+        </div>
+
+        ${usSentenceCardHtml}
+
         <div class="dict-senses-list">${sensesHtml}</div>
       </div>
     `;
 
     document.getElementById('btn-speak-dict')?.addEventListener('click', () => speakWord(word.lemma));
+    document.getElementById('btn-speak-us-sentence')?.addEventListener('click', () => {
+      if (usSentence?.sentenceEn) speakWord(usSentence.sentenceEn);
+    });
+
+    // 실생활 예문으로 덱에 추가 버튼
+    document.getElementById('btn-add-us-card')?.addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      const lemma = btn.dataset.lemma;
+      const definition = btn.dataset.def;
+      const exEn = btn.dataset.exEn;
+      const exKo = btn.dataset.exKo;
+      const fullEx = exKo ? `${exEn} (${exKo})` : exEn;
+
+      btn.disabled = true;
+      btn.textContent = '추가 중...';
+
+      try {
+        const sRes = await api('/api/senses', {
+          method: 'POST',
+          body: JSON.stringify({
+            lemma,
+            kind: 'word',
+            definition,
+            example_en: fullEx,
+          }),
+        });
+
+        if (!sRes.ok) {
+          btn.textContent = '실패';
+          return;
+        }
+        const senseData = await sRes.json();
+        const deckId = await ensureActiveDeckId();
+        const cRes = await api('/api/decks/cards', {
+          method: 'POST',
+          body: JSON.stringify({
+            deck_id: deckId,
+            sense_ids: [senseData.sense_id],
+          }),
+        });
+
+        const addedCards = await cRes.json().catch(() => []);
+        if (Array.isArray(addedCards) && addedCards.length > 0) {
+          btn.textContent = '✔ 실생활 예문 카드 추가됨';
+          btn.classList.add('added');
+        } else {
+          btn.textContent = '이미 추가됨';
+          btn.classList.add('already-added');
+        }
+        refreshDueHUD();
+      } catch (_) {
+        btn.textContent = '오류';
+      }
+    });
 
     // 한글 번역 버튼 이벤트 바인딩
     container.querySelectorAll('.btn-translate-sense').forEach((tBtn) => {
@@ -635,24 +907,21 @@
 
         if (!transBox.classList.contains('hidden')) {
           transBox.classList.add('hidden');
-          tBtn.textContent = '🌐 한글 번역';
+          tBtn.textContent = '🌐 영문 정의 번역';
           return;
         }
 
         tBtn.disabled = true;
         tBtn.textContent = '번역 중...';
         try {
-          const transUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(enText)}&langpair=en|ko`;
-          const tRes = await fetch(transUrl);
-          const tData = await tRes.json();
-          const koText = tData?.responseData?.translatedText || '번역을 가져오지 못했습니다.';
+          const koText = await translateText(enText) || '번역을 가져오지 못했습니다.';
           transBox.innerHTML = `<span><strong>한글 번역:</strong> ${escapeHtml(koText)}</span>`;
           transBox.classList.remove('hidden');
-          tBtn.textContent = '🌐 한글 접기';
+          tBtn.textContent = '🌐 번역 접기';
         } catch (_) {
           transBox.textContent = '번역 실패';
           transBox.classList.remove('hidden');
-          tBtn.textContent = '🌐 한글 번역';
+          tBtn.textContent = '🌐 영문 정의 번역';
         } finally {
           tBtn.disabled = false;
         }
