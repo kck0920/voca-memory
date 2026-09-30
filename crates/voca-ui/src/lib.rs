@@ -85,7 +85,8 @@ pub fn App(initial: DashboardView) -> impl IntoView {
                 <nav class="action-nav">
                     <button type="button" class="action-tab active" data-tab="study">"1. 복습하기"</button>
                     <button type="button" class="action-tab" data-tab="dict">"2. 단어 검색 및 추가"</button>
-                    <button type="button" class="action-tab" data-tab="settings">"3. 학습 설정"</button>
+                    <button type="button" class="action-tab" data-tab="cards">"3. 내 단어장"</button>
+                    <button type="button" class="action-tab" data-tab="settings">"4. 학습 설정 & 통계"</button>
                 </nav>
 
                 // 1. 복습하기 탭
@@ -134,10 +135,41 @@ pub fn App(initial: DashboardView) -> impl IntoView {
                     <div id="seed-import-feedback" class="system-msg"></div>
                 </div>
 
-                // 3. 학습 설정 탭
+                // 3. 내 단어장 탭
+                <div id="tab-cards-content" class="tab-content hidden">
+                    <div class="cards-header-row">
+                        <input type="text" id="cards-search-input" class="search-input-inline" placeholder="내 단어장에서 단어/뜻 검색..." />
+                        <span id="cards-count-badge" class="badge-count">"0장"</span>
+                    </div>
+                    <div id="cards-list-container" class="cards-list-box">
+                        <p class="loading-state">"단어 목록을 불러오는 중입니다..."</p>
+                    </div>
+                </div>
+
+                // 4. 학습 설정 & 통계 탭
                 <div id="tab-settings-content" class="tab-content hidden">
+                    <h3 class="sub-panel-title">"📊 최근 7일 학습 통계"</h3>
+                    <div id="stats-chart-container" class="stats-box">
+                        <p class="loading-state">"통계를 불러오는 중..."</p>
+                    </div>
+
+                    <h3 class="sub-panel-title">"🎯 일일 학습 목표 설정"</h3>
+                    <form id="deck-settings-form" class="auth-form">
+                        <div class="form-row">
+                            <label for="setting-new-per-day">"하루 신규 단어 학습량 (장)"</label>
+                            <input type="number" id="setting-new-per-day" min="1" max="100" value="20" required=true />
+                        </div>
+                        <div class="form-row">
+                            <label for="setting-daily-goal">"하루 복습 목표 (장)"</label>
+                            <input type="number" id="setting-daily-goal" min="5" max="200" value="20" required=true />
+                        </div>
+                        <button type="submit" class="action-btn-primary">"학습량 설정 저장"</button>
+                        <div id="setting-save-msg" class="system-msg"></div>
+                    </form>
+
+                    <h3 class="sub-panel-title">"🧠 목표 기억 유지율 (FSRS Retention)"</h3>
                     <p class="empty-note">
-                        "목표 기억 유지율(Retention)을 설정합니다. 숫자가 높을수록 자주 복습합니다."
+                        "목표 기억 유지율을 설정합니다. 숫자가 높을수록 자주 복습합니다."
                     </p>
                     <view::RetentionPicker selected=voca_domain::RetentionPreset::Balanced />
                 </div>

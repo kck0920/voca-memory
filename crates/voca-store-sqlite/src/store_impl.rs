@@ -2,10 +2,10 @@ use sqlx::{QueryBuilder, Sqlite};
 use time::OffsetDateTime;
 use voca_domain::{Id, ReviewState, SenseKind, SenseSource, WordSource, xp_progress};
 use voca_store::{
-    CardId, CardView, Change, ChangePage, ChangeRequest, Dashboard, DeckId, DeckProgress,
-    DeckUpdate, DeckView, DeckViewCardRef, NewDeck, NewUserSense, Page, QueuedCard, ReviewOutcome,
-    ReviewRequest, Revision, SenseId, SenseQuery, SenseView, Store, StoreError, StoreResult,
-    StudyQueue, StudyRequest, UserId, Versioned, WordView,
+    CardId, CardView, Change, ChangePage, ChangeRequest, Dashboard, DayReviewStat, DeckId,
+    DeckProgress, DeckUpdate, DeckView, DeckViewCardRef, NewDeck, NewUserSense, Page, QueuedCard,
+    ReviewOutcome, ReviewRequest, Revision, SenseId, SenseQuery, SenseView, Store, StoreError,
+    StoreResult, StudyQueue, StudyRequest, UserCardDetail, UserId, Versioned, WordView,
 };
 
 // `DeckRow` / `SenseRow` / `CardRow` 라는 이름이 **DB 행**과 **동기화 DTO** 양쪽에 있다.
@@ -477,6 +477,109 @@ impl Store for SqliteStore {
             return Err(StoreError::NotFound);
         }
         Ok(())
+    }
+
+    async fn list_cards(
+        &self,
+        user: UserId,
+        deck: Option<DeckId>,
+    ) -> StoreResult<Vec<UserCardDetail>> {
+        let user_str = user.to_string();
+        let deck_filter = deck.map(|d| d.to_string());
+
+        #[derive(sqlx::FromRow)]
+        struct CardDetailDb {
+            card_id: String,
+            deck_id: String,
+            lemma: String,
+            phonetic: Option<String>,
+            pos: Option<String>,
+            definition: String,
+            example_en: Option<String>,
+            state: String,
+            stability: Option<f64>,
+            due_at: i64,
+            reps: i64,
+            lapses: i64,
+        }
+
+        let rows: Vec<CardDetailDb> = sqlx::query_as(
+            "SELECT c.id as card_id, c.deck_id, w.lemma, w.phonetic, s.pos, s.definition, s.example_en,
+                    cs.state, cs.stability, cs.due_at, cs.reps, cs.lapses
+             FROM cards c
+             JOIN senses s ON c.sense_id = s.id
+             JOIN words w ON s.word_id = w.id
+             JOIN card_states cs ON cs.card_id = c.id
+             WHERE c.user_id = ?1 AND c.deleted_at IS NULL
+               AND (?2 IS NULL OR c.deck_id = ?2)
+             ORDER BY c.updated_at DESC, c.rowid DESC",
+        )
+        .bind(&user_str)
+        .bind(&deck_filter)
+        .fetch_all(self.pool())
+        .await
+        .map_err(classify)?;
+
+        let mut out = Vec::with_capacity(rows.len());
+        for r in rows {
+            let state = match r.state.as_str() {
+                "new" => voca_domain::ReviewState::New,
+                "review" => voca_domain::ReviewState::Review,
+                _ => voca_domain::ReviewState::New,
+            };
+            out.push(UserCardDetail {
+                card_id: parse_id(&r.card_id)?,
+                deck_id: parse_id(&r.deck_id)?,
+                lemma: r.lemma,
+                phonetic: r.phonetic,
+                pos: r.pos,
+                definition: r.definition,
+                example_en: r.example_en,
+                state,
+                stability: r.stability.map(|s| s as f32),
+                due_at: r.due_at,
+                reps: clamp_u32(r.reps),
+                lapses: clamp_u32(r.lapses),
+            });
+        }
+        Ok(out)
+    }
+
+    async fn review_stats(
+        &self,
+        user: UserId,
+        days: u32,
+    ) -> StoreResult<Vec<DayReviewStat>> {
+        let user_str = user.to_string();
+        let days_limit = (days.clamp(1, 365)) as i64;
+
+        #[derive(sqlx::FromRow)]
+        struct StatDb {
+            local_date: String,
+            count: i64,
+        }
+
+        let rows: Vec<StatDb> = sqlx::query_as(
+            "SELECT local_date, COUNT(*) as count
+             FROM review_log
+             WHERE user_id = ?1
+             GROUP BY local_date
+             ORDER BY local_date DESC
+             LIMIT ?2",
+        )
+        .bind(&user_str)
+        .bind(days_limit)
+        .fetch_all(self.pool())
+        .await
+        .map_err(classify)?;
+
+        Ok(rows
+            .into_iter()
+            .map(|r| DayReviewStat {
+                local_date: r.local_date,
+                count: clamp_u32(r.count),
+            })
+            .collect())
     }
 
     // ── 복습 ────────────────────────────────────────────────

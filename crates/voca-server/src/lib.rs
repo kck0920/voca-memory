@@ -19,7 +19,7 @@ mod sync;
 use std::sync::Arc;
 
 use axum::Router;
-use axum::routing::{get, post};
+use axum::routing::{delete, get, post};
 use voca_dict::client::Dictionary;
 use voca_store_sqlite::SqliteStore;
 
@@ -108,10 +108,15 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/senses", post(library::add_sense))
         .route(
             "/api/decks",
-            get(library::list_decks).post(library::create_deck),
+            get(library::list_decks)
+                .post(library::create_deck)
+                .patch(library::update_deck),
         )
         .route("/api/decks/cards", post(library::add_cards))
         .route("/api/decks/seed", post(seed::bootstrap_seed_endpoint))
+        .route("/api/cards", get(library::list_cards))
+        .route("/api/cards/{card_id}", delete(library::delete_card))
+        .route("/api/stats/summary", get(study::stats_summary))
         .route("/api/sync/changes", get(sync::changes))
         .route("/api/health", get(health))
         .route("/favicon.svg", get(page::favicon_svg))

@@ -112,15 +112,33 @@ pub fn DashboardHeader(view: DashboardView) -> impl IntoView {
 }
 
 /// 레벨 게이지.
+/// 레벨별 칭호.
+pub fn level_title(level: u32) -> &'static str {
+    match level {
+        1 => "단어 입문자",
+        2 => "어휘 탐색가",
+        3 => "단어 수집가",
+        4 => "어휘 실천가",
+        5 => "단어 숙련자",
+        6 => "어휘 탐구자",
+        7 => "어휘 마스터",
+        8 => "기억의 연금술사",
+        9 => "언어의 건축가",
+        _ => "기억의 현자",
+    }
+}
+
+/// 레벨 게이지.
 ///
 /// `into` / `span` 은 막대만으로는 알 수 없는 것을 말해 준다. **0% 인 게이지와
 /// 비어 있는 게이지는 화면에서 구분되지 않는다** — 숫자를 붙여야 "아직 안 채웠구나"
 /// 가 "아직 시작도 안 했구나" 와 다르다.
 #[component]
 pub fn LevelBar(level: u32, percent: u32, into: u32, span: u32) -> impl IntoView {
+    let title = level_title(level);
     view! {
         <div class="level" data-testid="level-bar" data-level=level>
-            <span class="level-label">{format!("Lv {level}")}</span>
+            <span class="level-label">{format!("Lv {level} {title}")}</span>
             <progress class="level-progress" value=percent max=100 />
             <span class="level-xp">{format!("{into} / {span} XP")}</span>
         </div>

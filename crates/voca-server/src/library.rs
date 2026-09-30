@@ -262,3 +262,88 @@ pub async fn add_cards(
     )
         .into_response())
 }
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateDeckBody {
+    pub deck_id: String,
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub daily_goal: Option<u32>,
+    #[serde(default)]
+    pub new_per_day: Option<u32>,
+}
+
+pub async fn update_deck(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    body: axum::Json<UpdateDeckBody>,
+) -> Result<Response, ApiError> {
+    let LoggedIn { user, .. } = require_login(&state, &headers).await?;
+    state.require_same_origin(&headers)?;
+
+    let b = body.0;
+    let Ok(deck_id) = uuid::Uuid::parse_str(&b.deck_id) else {
+        return Err(ApiError::from(voca_store::AuthFailure::Rejected("덱을 고르지 못했다")));
+    };
+
+    let deck = state
+        .store()
+        .update_deck(
+            user.user_id,
+            voca_store::DeckUpdate {
+                id: deck_id.into(),
+                name: b.name,
+                description: None,
+                daily_goal: b.daily_goal,
+                new_per_day: b.new_per_day,
+            },
+        )
+        .await
+        .map_err(ApiError::store)?;
+
+    Ok(axum::Json(DeckBody {
+        deck_id: deck.id.to_string(),
+        name: deck.name,
+        daily_goal: deck.daily_goal,
+        new_per_day: deck.new_per_day,
+    })
+    .into_response())
+}
+
+pub async fn list_cards(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+) -> Result<Response, ApiError> {
+    let LoggedIn { user, .. } = require_login(&state, &headers).await?;
+
+    let cards = state
+        .store()
+        .list_cards(user.user_id, None)
+        .await
+        .map_err(ApiError::store)?;
+
+    Ok(axum::Json(cards).into_response())
+}
+
+pub async fn delete_card(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+    axum::extract::Path(card_id): axum::extract::Path<String>,
+) -> Result<Response, ApiError> {
+    let LoggedIn { user, .. } = require_login(&state, &headers).await?;
+    state.require_same_origin(&headers)?;
+
+    let Ok(id) = uuid::Uuid::parse_str(&card_id) else {
+        return Err(ApiError::from(voca_store::AuthFailure::Rejected("카드를 고르지 못했다")));
+    };
+
+    state
+        .store()
+        .archive_card(user.user_id, id.into())
+        .await
+        .map_err(ApiError::store)?;
+
+    Ok(axum::Json(serde_json::json!({ "status": "deleted" })).into_response())
+}
+

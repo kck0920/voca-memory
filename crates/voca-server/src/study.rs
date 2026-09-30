@@ -359,3 +359,18 @@ fn local_moment() -> (OffsetDateTime, time::UtcOffset, time::Date) {
     let date = now.to_offset(offset).date();
     (now, offset, date)
 }
+
+pub async fn stats_summary(
+    State(state): State<AppState>,
+    headers: axum::http::HeaderMap,
+) -> Result<Response, ApiError> {
+    let LoggedIn { user, .. } = require_login(&state, &headers).await?;
+
+    let stats = state
+        .store()
+        .review_stats(user.user_id, 7)
+        .await
+        .map_err(ApiError::store)?;
+
+    Ok(axum::Json(stats).into_response())
+}

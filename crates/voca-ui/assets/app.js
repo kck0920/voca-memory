@@ -1,6 +1,10 @@
 // Voca Memory 브라우저 인터랙션 스크립트.
 //
-// 레트로 HUD 스타일의 대시보드, 복습 큐, 단어 검색/추가, 설정을 관리한다.
+// 1. 단어 발음 듣기 (Web Speech API TTS)
+// 2. "오늘 더 학습하기" 및 일일 학습량 설정 (new_per_day / daily_goal)
+// 3. 내 단어장 카드 목록 조회, 검색, 삭제 (My Cards Library)
+// 4. 영영사전 한글 뜻 원클릭 번역 (MyMemory Translation)
+// 5. 레벨 칭호 (Title) 및 최근 7일 학습 통계 차트
 
 (function () {
   'use strict';
@@ -29,6 +33,35 @@
   let currentCardIndex = 0;
   let isCardFlipped = false;
   let activeDeckId = null;
+  let allUserCards = [];
+
+  // ── TTS 음성 발음 재생 ────────────────────────────────────
+  function speakWord(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.92;
+      window.speechSynthesis.speak(u);
+    } catch (_) {}
+  }
+
+  // ── 레벨 칭호 매핑 ────────────────────────────────────────
+  function getLevelTitle(level) {
+    const titles = {
+      1: '단어 입문자',
+      2: '어휘 탐색가',
+      3: '단어 수집가',
+      4: '어휘 실천가',
+      5: '단어 숙련자',
+      6: '어휘 탐구자',
+      7: '어휘 마스터',
+      8: '기억의 연금술사',
+      9: '언어의 건축가',
+    };
+    return titles[level] || '기억의 현자';
+  }
 
   // ── 초기화 ────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', init);
@@ -41,6 +74,8 @@
     setupCustomSenseForm();
     setupKeyboardShortcuts();
     setupSeedButton();
+    setupDeckSettingsForm();
+    setupCardsSearch();
 
     await checkAuthStatus();
   }
@@ -216,6 +251,11 @@
 
         if (target === 'study') {
           loadStudyQueue();
+        } else if (target === 'cards') {
+          loadMyCards();
+        } else if (target === 'settings') {
+          loadDeckSettings();
+          loadStatsChart();
         }
       });
     });
@@ -243,7 +283,7 @@
       updateDueHUD(data.reviews_remaining, data.new_remaining_today);
 
       if (queueCards.length === 0) {
-        renderEmptyQueue(container);
+        renderEmptyQueue(container, data.new_remaining_today);
       } else {
         renderCard(container);
       }
@@ -252,13 +292,28 @@
     }
   }
 
-  function renderEmptyQueue(container) {
+  function renderEmptyQueue(container, newRemaining) {
+    const dueElem = document.querySelector('.due');
+    let hasRemainingNew = (newRemaining !== undefined && newRemaining > 0);
+    if (!hasRemainingNew && dueElem) {
+      const bTags = dueElem.querySelectorAll('b');
+      if (bTags.length >= 2 && parseInt(bTags[1].textContent || '0', 10) > 0) {
+        hasRemainingNew = true;
+      }
+    }
+
     container.innerHTML = `
       <div class="empty-study-box">
         <p class="empty-note">"현재 복습할 카드가 없습니다."</p>
-        <p class="empty-subnote">새 단어를 추가하거나 기본 단어 30선을 추가해보세요.</p>
+        <p class="empty-subnote">
+          ${hasRemainingNew ? '오늘 계획된 학습을 모두 마쳤습니다! 더 공부하고 싶으시다면 아래 버튼을 눌러보세요.' : '새 단어를 추가하거나 기본 단어 30선을 추가해보세요.'}
+        </p>
         <div class="empty-actions">
-          <button type="button" class="action-btn-primary" id="btn-import-seeds">
+          ${hasRemainingNew ? `
+            <button type="button" class="action-btn-primary" id="btn-study-more-5">⚡ +5장 더 학습하기</button>
+            <button type="button" class="action-btn-primary" id="btn-study-more-10">⚡ +10장 더 학습하기</button>
+          ` : ''}
+          <button type="button" class="action-btn-secondary" id="btn-import-seeds">
             ★ 기본 필수 다의어 30선 가져오기
           </button>
           <button type="button" class="action-btn-secondary" id="btn-go-dict">
@@ -268,10 +323,35 @@
       </div>
     `;
 
+    document.getElementById('btn-study-more-5')?.addEventListener('click', () => increaseTodayGoal(5));
+    document.getElementById('btn-study-more-10')?.addEventListener('click', () => increaseTodayGoal(10));
     document.getElementById('btn-import-seeds')?.addEventListener('click', importSeeds);
     document.getElementById('btn-go-dict')?.addEventListener('click', () => {
       document.querySelector('.action-tab[data-tab="dict"]')?.click();
     });
+  }
+
+  async function increaseTodayGoal(amount) {
+    const container = document.getElementById('study-container');
+    if (container) container.innerHTML = `<p class="loading-state">신규 단어 예산을 늘리고 복습 큐를 준비하는 중...</p>`;
+    try {
+      const deckId = await ensureActiveDeckId();
+      const currentDeck = await getDeckDetails(deckId);
+      const newLimit = (currentDeck.new_per_day || 10) + amount;
+
+      await api('/api/decks', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          deck_id: deckId,
+          new_per_day: newLimit,
+        }),
+      });
+
+      await loadStudyQueue();
+      await refreshDueHUD();
+    } catch (e) {
+      if (container) container.innerHTML = `<p class="error-msg">목표 갱신 실패: ${escapeHtml(e.message)}</p>`;
+    }
   }
 
   function renderCard(container) {
@@ -299,6 +379,7 @@
           <div class="card-face card-front">
             <div class="card-lemma-row">
               <h2 class="card-lemma">${escapeHtml(frontText)}</h2>
+              <button type="button" class="btn-speaker" id="btn-speak-front" title="발음 듣기 (단축키 R)">🔊</button>
               ${phonetic}
             </div>
             <button type="button" class="flip-btn" id="flip-btn">
@@ -340,6 +421,10 @@
       </div>
     `;
 
+    // 자동 발음 재생 (약간의 딜레이)
+    setTimeout(() => speakWord(card.lemma), 120);
+
+    document.getElementById('btn-speak-front')?.addEventListener('click', () => speakWord(card.lemma));
     document.getElementById('flip-btn')?.addEventListener('click', flipCard);
     container.querySelectorAll('.rating-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -391,11 +476,13 @@
       <div class="study-complete-box">
         <h3 class="complete-title">✨ 오늘의 복습 완료!</h3>
         <p class="complete-desc">오늘 계획된 카드를 모두 학습했습니다. 스트릭이 이어집니다!</p>
-        <button type="button" class="action-btn-primary" id="btn-refresh-queue">
-          다시 확인하기
-        </button>
+        <div class="empty-actions">
+          <button type="button" class="action-btn-primary" id="btn-study-more-5-complete">⚡ +5장 더 학습하기</button>
+          <button type="button" class="action-btn-secondary" id="btn-refresh-queue">다시 확인하기</button>
+        </div>
       </div>
     `;
+    document.getElementById('btn-study-more-5-complete')?.addEventListener('click', () => increaseTodayGoal(5));
     document.getElementById('btn-refresh-queue')?.addEventListener('click', loadStudyQueue);
   }
 
@@ -409,7 +496,10 @@
     }
     if (outcome.level) {
       const levelLabel = document.querySelector('.level-label');
-      if (levelLabel) levelLabel.textContent = `Lv ${outcome.level.level}`;
+      if (levelLabel) {
+        const title = getLevelTitle(outcome.level.level);
+        levelLabel.textContent = `Lv ${outcome.level.level} ${title}`;
+      }
 
       const progress = document.querySelector('.level-progress');
       if (progress && outcome.level.xp_span > 0) {
@@ -504,13 +594,17 @@
               <span class="dict-def">${escapeHtml(s.definition)}</span>
             </div>
             ${ex}
-            <button type="button" class="btn-add-sense mini-btn" 
-                    data-lemma="${escapeHtml(word.lemma)}"
-                    data-pos="${escapeHtml(s.pos || '')}"
-                    data-def="${escapeHtml(s.definition)}"
-                    data-ex="${escapeHtml(s.example_en || '')}">
-              + 덱에 추가
-            </button>
+            <div class="dict-actions-row">
+              <button type="button" class="btn-translate-sense mini-btn" data-text="${escapeHtml(s.definition)}">🌐 한글 번역</button>
+              <button type="button" class="btn-add-sense mini-btn" 
+                      data-lemma="${escapeHtml(word.lemma)}"
+                      data-pos="${escapeHtml(s.pos || '')}"
+                      data-def="${escapeHtml(s.definition)}"
+                      data-ex="${escapeHtml(s.example_en || '')}">
+                + 덱에 추가
+              </button>
+            </div>
+            <div class="translated-box hidden"></div>
           </div>
         `;
       })
@@ -519,13 +613,53 @@
     container.innerHTML = `
       <div class="dict-word-card">
         <div class="dict-word-header">
-          <h3 class="dict-lemma">${escapeHtml(word.lemma)}</h3>
-          ${phonetic}
+          <div class="lemma-group">
+            <h3 class="dict-lemma">${escapeHtml(word.lemma)}</h3>
+            <button type="button" class="btn-speaker" id="btn-speak-dict" title="발음 듣기">🔊</button>
+            ${phonetic}
+          </div>
         </div>
         <div class="dict-senses-list">${sensesHtml}</div>
       </div>
     `;
 
+    document.getElementById('btn-speak-dict')?.addEventListener('click', () => speakWord(word.lemma));
+
+    // 한글 번역 버튼 이벤트 바인딩
+    container.querySelectorAll('.btn-translate-sense').forEach((tBtn) => {
+      tBtn.addEventListener('click', async () => {
+        const enText = tBtn.dataset.text;
+        const itemBox = tBtn.closest('.dict-sense-item');
+        const transBox = itemBox?.querySelector('.translated-box');
+        if (!transBox) return;
+
+        if (!transBox.classList.contains('hidden')) {
+          transBox.classList.add('hidden');
+          tBtn.textContent = '🌐 한글 번역';
+          return;
+        }
+
+        tBtn.disabled = true;
+        tBtn.textContent = '번역 중...';
+        try {
+          const transUrl = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(enText)}&langpair=en|ko`;
+          const tRes = await fetch(transUrl);
+          const tData = await tRes.json();
+          const koText = tData?.responseData?.translatedText || '번역을 가져오지 못했습니다.';
+          transBox.innerHTML = `<span><strong>한글 번역:</strong> ${escapeHtml(koText)}</span>`;
+          transBox.classList.remove('hidden');
+          tBtn.textContent = '🌐 한글 접기';
+        } catch (_) {
+          transBox.textContent = '번역 실패';
+          transBox.classList.remove('hidden');
+          tBtn.textContent = '🌐 한글 번역';
+        } finally {
+          tBtn.disabled = false;
+        }
+      });
+    });
+
+    // 덱에 추가 버튼 이벤트
     container.querySelectorAll('.btn-add-sense').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const lemma = btn.dataset.lemma;
@@ -537,7 +671,7 @@
         btn.textContent = '추가 중...';
 
         try {
-          // 1. Sense 생성
+          // 1. Sense 생성 (기존에 있으면 재사용됨)
           const sRes = await api('/api/senses', {
             method: 'POST',
             body: JSON.stringify({
@@ -661,6 +795,200 @@
     }
   }
 
+  // ── 내 단어장 뷰 ──────────────────────────────────────────
+  function setupCardsSearch() {
+    const searchInput = document.getElementById('cards-search-input');
+    searchInput?.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      if (!q) {
+        renderUserCardsList(allUserCards);
+      } else {
+        const filtered = allUserCards.filter((c) => {
+          return c.lemma.toLowerCase().includes(q) || c.definition.toLowerCase().includes(q);
+        });
+        renderUserCardsList(filtered);
+      }
+    });
+  }
+
+  async function loadMyCards() {
+    const container = document.getElementById('cards-list-container');
+    const badge = document.getElementById('cards-count-badge');
+    if (!container) return;
+
+    container.innerHTML = `<p class="loading-state">내 단어장을 불러오는 중입니다...</p>`;
+    try {
+      const res = await api('/api/cards', { method: 'GET' });
+      if (!res.ok) {
+        container.innerHTML = `<p class="error-msg">단어장을 불러오지 못했습니다.</p>`;
+        return;
+      }
+      allUserCards = await res.json();
+      if (badge) badge.textContent = `${allUserCards.length}장`;
+      renderUserCardsList(allUserCards);
+    } catch (e) {
+      container.innerHTML = `<p class="error-msg">오류: ${escapeHtml(e.message)}</p>`;
+    }
+  }
+
+  function renderUserCardsList(cards) {
+    const container = document.getElementById('cards-list-container');
+    if (!container) return;
+
+    if (!cards || cards.length === 0) {
+      container.innerHTML = `<p class="empty-note">등록된 카드가 없습니다. 사전에서 단어를 검색하거나 나만의 뜻을 등록해 보세요.</p>`;
+      return;
+    }
+
+    const html = cards.map((c) => {
+      const isNew = c.state === 'new';
+      const stateBadge = isNew
+        ? `<span class="badge-new">NEW</span>`
+        : `<span class="badge-review">복습 (${c.reps}회 / 안정도 ${c.stability ? c.stability.toFixed(1) : '-'}일)</span>`;
+      const posBadge = c.pos ? `<span class="pos-badge">${escapeHtml(c.pos)}</span>` : '';
+      return `
+        <div class="user-card-item" data-card-id="${c.card_id}">
+          <div class="user-card-main">
+            <div class="user-card-lemma-row">
+              <strong class="user-card-lemma">${escapeHtml(c.lemma)}</strong>
+              <button type="button" class="btn-speaker-mini" data-lemma="${escapeHtml(c.lemma)}" title="발음 듣기">🔊</button>
+              ${posBadge}
+              ${stateBadge}
+            </div>
+            <div class="user-card-def">${escapeHtml(c.definition)}</div>
+            ${c.example_en ? `<div class="user-card-ex">"${escapeHtml(c.example_en)}"</div>` : ''}
+          </div>
+          <div class="user-card-actions">
+            <button type="button" class="btn-delete-card mini-btn btn-danger" data-card-id="${c.card_id}" title="카드 삭제">🗑️ 삭제</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `<div class="cards-list">${html}</div>`;
+
+    container.querySelectorAll('.btn-speaker-mini').forEach((b) => {
+      b.addEventListener('click', () => speakWord(b.dataset.lemma));
+    });
+
+    container.querySelectorAll('.btn-delete-card').forEach((b) => {
+      b.addEventListener('click', async () => {
+        const cardId = b.dataset.cardId;
+        if (!confirm('이 카드를 단어장에서 삭제하시겠습니까?')) return;
+        b.disabled = true;
+        b.textContent = '삭제 중...';
+        try {
+          const res = await api(`/api/cards/${cardId}`, { method: 'DELETE' });
+          if (res.ok) {
+            allUserCards = allUserCards.filter((c) => c.card_id !== cardId);
+            renderUserCardsList(allUserCards);
+            const badge = document.getElementById('cards-count-badge');
+            if (badge) badge.textContent = `${allUserCards.length}장`;
+            refreshDueHUD();
+          } else {
+            alert('삭제 실패');
+            b.disabled = false;
+            b.textContent = '🗑️ 삭제';
+          }
+        } catch (_) {
+          alert('오류 발생');
+          b.disabled = false;
+          b.textContent = '🗑️ 삭제';
+        }
+      });
+    });
+  }
+
+  // ── 학습 설정 & 통계 뷰 ────────────────────────────────────
+  async function loadDeckSettings() {
+    try {
+      const deckId = await ensureActiveDeckId();
+      const deck = await getDeckDetails(deckId);
+      const newPerDayInput = document.getElementById('setting-new-per-day');
+      const dailyGoalInput = document.getElementById('setting-daily-goal');
+      if (newPerDayInput && deck.new_per_day) newPerDayInput.value = deck.new_per_day;
+      if (dailyGoalInput && deck.daily_goal) dailyGoalInput.value = deck.daily_goal;
+    } catch (_) {}
+  }
+
+  function setupDeckSettingsForm() {
+    const form = document.getElementById('deck-settings-form');
+    const msg = document.getElementById('setting-save-msg');
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPerDay = parseInt(document.getElementById('setting-new-per-day')?.value || '20', 10);
+      const dailyGoal = parseInt(document.getElementById('setting-daily-goal')?.value || '20', 10);
+
+      showMsg(msg, '저장 중...', 'info');
+      try {
+        const deckId = await ensureActiveDeckId();
+        const res = await api('/api/decks', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            deck_id: deckId,
+            new_per_day: newPerDay,
+            daily_goal: dailyGoal,
+          }),
+        });
+        if (res.ok) {
+          showMsg(msg, '✔ 학습 목표가 성공적으로 저장되었습니다!', 'success');
+          refreshDueHUD();
+        } else {
+          showMsg(msg, '[오류] 저장 실패', 'error');
+        }
+      } catch (e) {
+        showMsg(msg, '[오류] 서버 통신 실패', 'error');
+      }
+    });
+  }
+
+  async function loadStatsChart() {
+    const container = document.getElementById('stats-chart-container');
+    if (!container) return;
+
+    try {
+      const res = await api('/api/stats/summary', { method: 'GET' });
+      if (!res.ok) {
+        container.innerHTML = `<p class="empty-note">통계를 불러올 수 없습니다.</p>`;
+        return;
+      }
+      const stats = await res.json();
+      renderStatsBars(stats, container);
+    } catch (_) {
+      container.innerHTML = `<p class="empty-note">통계 로드 중 오류가 발생했습니다.</p>`;
+    }
+  }
+
+  function renderStatsBars(stats, container) {
+    if (!stats || stats.length === 0) {
+      container.innerHTML = `<p class="empty-note">최근 7일간의 복습 기록이 아직 없습니다. 카드를 학습하면 여기에 기록됩니다.</p>`;
+      return;
+    }
+
+    const maxCount = Math.max(...stats.map((s) => s.count), 1);
+    const barsHtml = stats.slice().reverse().map((s) => {
+      const heightPercent = Math.max(12, Math.round((s.count / maxCount) * 100));
+      return `
+        <div class="stat-bar-col">
+          <span class="stat-count">${s.count}회</span>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill" style="height: ${heightPercent}%"></div>
+          </div>
+          <span class="stat-date">${s.local_date.slice(5)}</span>
+        </div>
+      `;
+    }).join('');
+
+    const totalReviews = stats.reduce((acc, s) => acc + s.count, 0);
+
+    container.innerHTML = `
+      <div class="stats-summary-text">
+        <span>최근 7일간 총 <strong>${totalReviews}건</strong>의 복습을 수행했습니다!</span>
+      </div>
+      <div class="stats-bars-wrapper">${barsHtml}</div>
+    `;
+  }
+
   // ── 활성 덱 ID 가져오기/생성하기 ───────────────────────────
   async function ensureActiveDeckId() {
     if (activeDeckId) return activeDeckId;
@@ -688,6 +1016,16 @@
     throw new Error('덱을 찾거나 생성할 수 없습니다.');
   }
 
+  async function getDeckDetails(deckId) {
+    const res = await api('/api/decks', { method: 'GET' });
+    if (res.ok) {
+      const decks = await res.json();
+      const target = decks.find((d) => d.deck_id === deckId);
+      if (target) return target;
+    }
+    return { new_per_day: 10, daily_goal: 20 };
+  }
+
   // ── 키보드 단축키 ─────────────────────────────────────────
   function setupKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
@@ -699,8 +1037,15 @@
       if (!cardViewer) return;
 
       const cardId = cardViewer.dataset.cardId;
+      const currentCard = queueCards[currentCardIndex];
 
-      if (e.code === 'Space') {
+      // R 키: 현재 카드 발음 듣기
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        if (currentCard && currentCard.lemma) {
+          speakWord(currentCard.lemma);
+        }
+      } else if (e.code === 'Space') {
         e.preventDefault();
         if (!isCardFlipped) {
           flipCard();

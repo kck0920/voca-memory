@@ -40,8 +40,8 @@ pub use account::{
 pub use change::{
     CardRow, Change, ChangePage, ChangeRequest, DeckRow, ReviewSummary, SenseRow, StateRow, WordRow,
 };
-pub use dashboard::{Dashboard, DeckProgress};
-pub use deck::{AddCards, CardView, DeckUpdate, DeckView, NewDeck};
+pub use dashboard::{Dashboard, DayReviewStat, DeckProgress};
+pub use deck::{AddCards, CardView, DeckUpdate, DeckView, NewDeck, UserCardDetail};
 pub use error::{StoreError, StoreResult};
 pub use lexicon::{
     DictionarySense, NewUserSense, SenseKind, SenseSource, SenseView, UpsertDictionaryWord,
@@ -153,6 +153,20 @@ pub trait Store: Send + Sync {
         user: UserId,
         card: CardId,
     ) -> impl Future<Output = StoreResult<()>> + Send;
+
+    /// 사용자의 카드 목록을 상세 정보(단어, 품사, 뜻, 스케줄링 상태)와 함께 조회한다.
+    fn list_cards(
+        &self,
+        user: UserId,
+        deck: Option<DeckId>,
+    ) -> impl Future<Output = StoreResult<Vec<UserCardDetail>>> + Send;
+
+    /// 최근 N일간의 일별 복습 횟수 통계를 조회한다.
+    fn review_stats(
+        &self,
+        user: UserId,
+        days: u32,
+    ) -> impl Future<Output = StoreResult<Vec<DayReviewStat>>> + Send;
 
     // ── 복습 ────────────────────────────────────────────────
     /// 지금 풀 Card를 고른다. 신규는 덱의 `new_per_day`를, 복습은 회수 가능성이

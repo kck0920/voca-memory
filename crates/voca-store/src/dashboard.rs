@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use time::{Date, OffsetDateTime};
 use voca_domain::{LevelProgress, Streak};
 
@@ -61,6 +61,13 @@ impl DeckProgress {
         }
         (self.seen as u64 * 100 / self.total as u64) as u32
     }
+}
+
+/// 특정 일자의 복습 횟수 통계.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayReviewStat {
+    pub local_date: String,
+    pub count: u32,
 }
 
 #[cfg(test)]

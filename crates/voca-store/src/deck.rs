@@ -72,6 +72,23 @@ pub struct CardView {
     pub sense_id: SenseId,
 }
 
+/// 학습자가 덱에서 조회하는 단어 카드의 상세 정보.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct UserCardDetail {
+    pub card_id: CardId,
+    pub deck_id: Id,
+    pub lemma: String,
+    pub phonetic: Option<String>,
+    pub pos: Option<String>,
+    pub definition: String,
+    pub example_en: Option<String>,
+    pub state: voca_domain::ReviewState,
+    pub stability: Option<f32>,
+    pub due_at: i64,
+    pub reps: u32,
+    pub lapses: u32,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

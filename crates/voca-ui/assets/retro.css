@@ -1079,3 +1079,230 @@ input[type="password"]:focus {
   border-bottom: 1px solid var(--edge);
   padding-bottom: 8px;
 }
+
+/* ── 1. 스피커 발음 버튼 ── */
+.btn-speaker {
+  background: transparent;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+  vertical-align: middle;
+}
+.btn-speaker:hover {
+  transform: scale(1.15);
+  opacity: 0.85;
+}
+.btn-speaker:active {
+  transform: scale(0.95);
+}
+
+.btn-speaker-mini {
+  background: transparent;
+  border: none;
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: transform 0.1s ease;
+  vertical-align: middle;
+}
+.btn-speaker-mini:hover {
+  transform: scale(1.2);
+}
+
+/* ── 2. 한글 번역 버튼 및 결과 박스 ── */
+.dict-actions-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.btn-translate-sense {
+  background: rgba(100, 200, 255, 0.08);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.btn-translate-sense:hover {
+  background: rgba(100, 200, 255, 0.2);
+}
+
+.translated-box {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background: rgba(110, 242, 176, 0.05);
+  border-left: 3px solid var(--mint);
+  font-size: 0.95rem;
+  color: var(--mint);
+  border-radius: 2px;
+}
+
+/* ── 3. 내 단어장 뷰 ── */
+.cards-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-input-inline {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.search-input-inline:focus {
+  border-color: var(--mint);
+}
+
+.badge-count {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--edge);
+  color: var(--cyan);
+  border-radius: 12px;
+}
+
+.cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.user-card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  padding: 12px 16px;
+  transition: border-color 0.15s ease;
+}
+.user-card-item:hover {
+  border-color: var(--ink-dim);
+}
+
+.user-card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-card-lemma-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.user-card-lemma {
+  font-size: 1.15rem;
+  color: var(--ink);
+  font-family: var(--mono);
+}
+
+.user-card-def {
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+}
+
+.user-card-ex {
+  font-size: 0.85rem;
+  color: var(--edge-light, #666);
+  font-style: italic;
+}
+
+.btn-danger {
+  color: #ff6b6b !important;
+  border-color: rgba(255, 107, 107, 0.4) !important;
+}
+.btn-danger:hover {
+  background: rgba(255, 107, 107, 0.15) !important;
+  border-color: #ff6b6b !important;
+}
+
+/* ── 4. 주간 학습 통계 바 차트 ── */
+.stats-box {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-summary-text {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  color: var(--mint);
+  margin-bottom: 16px;
+}
+
+.stats-bars-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  height: 140px;
+  padding-top: 20px;
+  border-bottom: 1px solid var(--edge);
+}
+
+.stat-bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  max-width: 50px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.stat-count {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+}
+
+.stat-bar-track {
+  width: 18px;
+  height: 90px;
+  background: var(--panel-2);
+  border: 1px solid var(--edge);
+  border-radius: 3px 3px 0 0;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  width: 100%;
+  background: linear-gradient(to top, var(--mint), var(--cyan));
+  border-radius: 2px 2px 0 0;
+  transition: height 0.4s ease-out;
+}
+
+.stat-date {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--ink-dim);
+  margin-top: 4px;
+}
+
