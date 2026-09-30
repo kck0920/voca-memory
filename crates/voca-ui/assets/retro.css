@@ -1,8 +1,9 @@
 /* Voca Memory 화면 스타일.
  *
  * **레트로 아케이드 & 게이미피케이션 콘솔 UI.**
- * 8-Bit 아케이드 기판 및 1980-90년대 레트로 컴퓨터의 기분 좋은 손맛과
- * 몰입감 넘치는 감성을 현대적인 가독성과 결합한 학습 인터페이스.
+ * 4가지 레트로 테마(아케이드 / 신스웨이브 / 게임보이 / 90s 레트로 PC)의
+ * 감성을 완벽하게 살리면서 모든 테마에서 WCAG AA 이상의 선명한 가시성과
+ * 뛰어난 가독성을 보장한다.
  */
 
 /* ── 테마 및 색상 변수 ────────────────────────────────────────────── */
@@ -19,6 +20,31 @@
   --panel-hover: #252b4d;
   --panel-border: #2e355c;
   --panel-border-bright: #6366f1;
+
+  --titlebar-bg: #070913;
+  --titlebar-text: #cbd5e1;
+  --titlebar-meta-bg: rgba(16, 185, 129, 0.18);
+  --titlebar-meta-text: #34d399;
+
+  /* 카드 내부 영역 */
+  --card-bg: #070913;
+  --card-border: #6366f1;
+  --card-lemma: #34d399;
+  --card-phonetic: #94a3b8;
+  --card-def-bg: #15192e;
+  --card-def-text: #f1f5f9;
+  --card-ex-bg: rgba(56, 189, 248, 0.12);
+  --card-ex-text: #38bdf8;
+  --card-ex-border: #38bdf8;
+
+  --pos-bg: rgba(56, 189, 248, 0.18);
+  --pos-text: #38bdf8;
+  --pos-border: #38bdf8;
+
+  --badge-new-bg: #38bdf8;
+  --badge-new-text: #020617;
+  --badge-rev-bg: #f59e0b;
+  --badge-rev-text: #020617;
 
   --ink: #f1f5f9;
   --ink-dim: #94a3b8;
@@ -52,7 +78,6 @@
   --mono: ui-monospace, "SF Mono", "Fira Code", Menlo, Consolas, monospace;
   --sans: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
 
-  /* 3D 햅틱 레트로 섀도우 */
   --lift: 4px 4px 0 #000000;
   --lift-sm: 2px 2px 0 #000000;
   --lift-lg: 6px 6px 0 #000000;
@@ -74,6 +99,30 @@
   --panel-border: #581c87;
   --panel-border-bright: #f43f5e;
 
+  --titlebar-bg: #0a0414;
+  --titlebar-text: #f5d0fe;
+  --titlebar-meta-bg: rgba(244, 63, 94, 0.25);
+  --titlebar-meta-text: #fb7185;
+
+  --card-bg: #0a0414;
+  --card-border: #f43f5e;
+  --card-lemma: #fb7185;
+  --card-phonetic: #d8b4fe;
+  --card-def-bg: #200f3b;
+  --card-def-text: #fdf2f8;
+  --card-ex-bg: rgba(56, 189, 248, 0.16);
+  --card-ex-text: #38bdf8;
+  --card-ex-border: #38bdf8;
+
+  --pos-bg: rgba(244, 63, 94, 0.25);
+  --pos-text: #fb7185;
+  --pos-border: #f43f5e;
+
+  --badge-new-bg: #38bdf8;
+  --badge-new-text: #0a0414;
+  --badge-rev-bg: #facc15;
+  --badge-rev-text: #0a0414;
+
   --ink: #fdf2f8;
   --ink-dim: #d8b4fe;
   --ink-faint: #9333ea;
@@ -90,44 +139,75 @@
   --lift: 4px 4px 0 #07020d;
 }
 
-/* [테마 3: 🕹️ GameBoy Classic 1989 - 향수 어린 올리브 픽셀 LCD] */
+/* [테마 3: 🕹️ GameBoy Classic 1989 - 오리지널 4-Shade 픽셀 LCD]
+ * 게임보이 LCD는 밝은 연두 스크린(#9bbc0f) 위에 가장 짙은 픽셀 잉크(#0f380f)로
+ * 글씨를 그릴 때 최고의 가독성과 향수를 제공한다.
+ */
 [data-theme="gameboy"] {
   --bg: #8bac0f;
-  --bg-deep: #75940c;
+  --bg-deep: #1e451e;
   --bg-gradient: radial-gradient(circle at center, #9bbc0f 0%, #8bac0f 70%, #6e8a0a 100%);
-  --grid-dot: rgba(15, 56, 15, 0.18);
-  --grid-line: rgba(15, 56, 15, 0.08);
+  --grid-dot: rgba(15, 56, 15, 0.22);
+  --grid-line: rgba(15, 56, 15, 0.1);
 
   --panel: #306230;
   --panel-2: #244b24;
   --panel-hover: #3c773c;
   --panel-border: #0f380f;
-  --panel-border-bright: #9bbc0f;
+  --panel-border-bright: #0f380f;
+
+  /* 윈도우 타이틀바: 짙은 픽셀 잉크 + 밝은 연두 글씨 */
+  --titlebar-bg: #0f380f;
+  --titlebar-text: #9bbc0f;
+  --titlebar-meta-bg: #306230;
+  --titlebar-meta-text: #e0f8d0;
+
+  /* 플래시카드: 밝은 LCD 스크린(#9bbc0f) + 가장 진한 픽셀 텍스트(#0f380f)! */
+  --card-bg: #9bbc0f;
+  --card-border: #0f380f;
+  --card-lemma: #0f380f;
+  --card-phonetic: #306230;
+  --card-def-bg: #306230;
+  --card-def-text: #e0f8d0;
+  --card-ex-bg: #8bac0f;
+  --card-ex-text: #0f380f;
+  --card-ex-border: #0f380f;
+
+  --pos-bg: #0f380f;
+  --pos-text: #e0f8d0;
+  --pos-border: #0f380f;
+
+  --badge-new-bg: #0f380f;
+  --badge-new-text: #e0f8d0;
+  --badge-rev-bg: #306230;
+  --badge-rev-text: #e0f8d0;
 
   --ink: #e0f8d0;
   --ink-dim: #9bbc0f;
-  --ink-faint: #657e08;
+  --ink-faint: #426942;
 
-  --mint: #9bbc0f;
-  --mint-light: #e0f8d0;
-  --cyan: #8bac0f;
-  --amber: #e0f8d0;
-  --rose: #f87171;
-  --purple: #8bac0f;
+  --mint: #e0f8d0;
+  --mint-light: #ffffff;
+  --cyan: #9bbc0f;
+  --amber: #fef08a;
+  --rose: #fca5a5;
+  --purple: #9bbc0f;
 
   --edge: #0f380f;
-  --edge-glow: rgba(155, 188, 15, 0.3);
+  --edge-glow: rgba(15, 56, 15, 0.4);
   --lift: 4px 4px 0 #0f380f;
   --lift-sm: 2px 2px 0 #0f380f;
 }
 
-/* [테마 4: 💾 Retro PC 95 - 윈도우 95 / 클래식 Mac 크림색 레트로 모던] */
+/* [테마 4: 💾 Retro PC 95 - 윈도우 95 / 클래식 Mac 크림색 레트로 모던]
+ * 클래식 윈도우 95의 상징: 네이비 블루 헤더 + 선명한 화이트 카드 + 또렷한 블랙/네이비 텍스트!
+ */
 [data-theme="retropc"] {
   --bg: #008080;
-  --bg-deep: #006666;
-  --bg-gradient: linear-gradient(135deg, #008080 0%, #005a5a 100%);
-  --grid-dot: rgba(255, 255, 255, 0.12);
-  --grid-line: rgba(255, 255, 255, 0.06);
+  --bg-deep: #005a5a;
+  --bg-gradient: linear-gradient(135deg, #008080 0%, #006666 100%);
+  --grid-dot: rgba(255, 255, 255, 0.16);
+  --grid-line: rgba(255, 255, 255, 0.08);
 
   --panel: #c0c0c0;
   --panel-2: #d4d4d4;
@@ -135,13 +215,39 @@
   --panel-border: #404040;
   --panel-border-bright: #000080;
 
+  /* 윈도우 95의 상징: 네이비 블루 타이틀바 + 선명한 화이트 글씨 */
+  --titlebar-bg: #000080;
+  --titlebar-text: #ffffff;
+  --titlebar-meta-bg: #0284c7;
+  --titlebar-meta-text: #ffffff;
+
+  /* 플래시카드: 순백색 배경 + 진한 네이비/차콜 텍스트 */
+  --card-bg: #ffffff;
+  --card-border: #000080;
+  --card-lemma: #000080;
+  --card-phonetic: #4b5563;
+  --card-def-bg: #f3f4f6;
+  --card-def-text: #111827;
+  --card-ex-bg: #e0f2fe;
+  --card-ex-text: #0369a1;
+  --card-ex-border: #0284c7;
+
+  --pos-bg: #000080;
+  --pos-text: #ffffff;
+  --pos-border: #000080;
+
+  --badge-new-bg: #000080;
+  --badge-new-text: #ffffff;
+  --badge-rev-bg: #b45309;
+  --badge-rev-text: #ffffff;
+
   --ink: #111827;
   --ink-dim: #374151;
   --ink-faint: #6b7280;
 
   --mint: #047857;
   --mint-light: #059669;
-  --cyan: #0369a1;
+  --cyan: #0284c7;
   --amber: #b45309;
   --rose: #be123c;
   --purple: #6d28d9;
@@ -160,11 +266,7 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* ── 바탕화면 (배경) ──────────────────────────────────────────────────
- * 눈을 피로하게 만들던 어두운 가로선 scanline 대신
- * 정갈하고 기분 좋은 레트로 도트 매트릭스 그리드와
- * 은은한 앰비언트 오로라 글로우로 몰입감을 극대화한다.
- */
+/* ── 바탕화면 (배경) ────────────────────────────────────────────────── */
 body {
   margin: 0;
   background-color: var(--bg);
@@ -227,23 +329,23 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--bg-deep);
+  background: var(--titlebar-bg);
   border: 2px solid var(--panel-border);
   border-bottom: none;
   border-radius: var(--radius-box) var(--radius-box) 0 0;
-  padding: 8px 14px;
+  padding: 10px 16px;
   box-shadow: var(--lift);
 }
 
 .window-dots {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .dot {
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: inline-block;
   border: 1px solid rgba(0, 0, 0, 0.4);
@@ -255,21 +357,21 @@ body::before {
 
 .window-title-text {
   font-family: var(--mono);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--ink-dim);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--titlebar-text);
   margin-left: 8px;
 }
 
 .window-meta-tag {
   font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--mint);
-  background: var(--mint-dim);
-  border: 1px solid var(--mint);
-  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--titlebar-meta-text);
+  background: var(--titlebar-meta-bg);
+  border: 1px solid var(--titlebar-meta-text);
+  padding: 3px 10px;
   border-radius: 4px;
 }
 
@@ -325,12 +427,26 @@ body::before {
   line-height: 1.1;
 }
 
+[data-theme="retropc"] .brand {
+  text-shadow: 1px 1px 0 #ffffff;
+}
+
+[data-theme="gameboy"] .brand {
+  color: #e0f8d0;
+  text-shadow: 2px 2px 0 #0f380f;
+}
+
 .brand-sub {
   margin: 4px 0 0;
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--ink-dim);
+}
+
+[data-theme="gameboy"] .brand-sub {
+  color: #e0f8d0;
+  opacity: 0.9;
 }
 
 /* 상단 우측 컨트롤 (SFX 토글, 테마 선택, 로그인 상태) */
@@ -395,8 +511,8 @@ body::before {
   color: var(--ink);
   border: none;
   font-family: var(--sans);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   cursor: pointer;
   outline: none;
 }
@@ -404,6 +520,11 @@ body::before {
 .theme-select option {
   background: var(--panel);
   color: var(--ink);
+}
+
+[data-theme="retropc"] .theme-select option {
+  background: #ffffff;
+  color: #111827;
 }
 
 .auth-status {
@@ -425,6 +546,18 @@ body::before {
   padding: 5px 12px;
   font-weight: 700;
   box-shadow: var(--lift-sm);
+}
+
+[data-theme="retropc"] .user-badge {
+  background: #ffffff;
+  color: #047857;
+  border-color: #047857;
+}
+
+[data-theme="gameboy"] .user-badge {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
 }
 
 .badge-dot {
@@ -497,6 +630,18 @@ body::before {
   box-shadow: var(--lift-sm);
 }
 
+[data-theme="retropc"] .streak {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #b45309;
+}
+
+[data-theme="gameboy"] .streak {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .streak-icon {
   font-size: 1.5rem;
   display: inline-block;
@@ -545,11 +690,27 @@ body::before {
   padding: 8px 14px;
 }
 
+[data-theme="retropc"] .quest-box .due {
+  background: #ffffff;
+  color: #1f2937;
+}
+
+[data-theme="gameboy"] .quest-box .due {
+  background: #244b24;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .quest-box .due b {
   font-family: var(--mono);
   font-size: 1.35rem;
   font-weight: 800;
   color: var(--cyan);
+}
+
+[data-theme="gameboy"] .quest-box .due b {
+  color: #e0f8d0;
+  text-decoration: underline;
 }
 
 /* 레벨 & 경험치 RPG 진행도 */
@@ -576,6 +737,18 @@ body::before {
   border: 2px solid var(--mint);
   border-radius: 4px;
   padding: 2px 8px;
+}
+
+[data-theme="retropc"] .level-tag {
+  background: #dcfce7;
+  color: #047857;
+  border-color: #047857;
+}
+
+[data-theme="gameboy"] .level-tag {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
 }
 
 .level-title-badge {
@@ -638,6 +811,18 @@ body::before {
   );
 }
 
+[data-theme="gameboy"] .level-progress::-webkit-progress-value {
+  background-image: repeating-linear-gradient(
+    90deg,
+    #9bbc0f 0 10px,
+    transparent 10px 12px
+  );
+}
+
+[data-theme="retropc"] .level-progress {
+  background-color: #ffffff;
+}
+
 .level-xp-wrap {
   display: inline-flex;
   align-items: center;
@@ -653,6 +838,10 @@ body::before {
   font-variant-numeric: tabular-nums;
 }
 
+[data-theme="gameboy"] .level-xp {
+  color: #e0f8d0;
+}
+
 .level-percent-chip {
   font-family: var(--mono);
   font-size: 0.78rem;
@@ -662,6 +851,18 @@ body::before {
   border: 1px solid var(--cyan);
   padding: 1px 6px;
   border-radius: 4px;
+}
+
+[data-theme="retropc"] .level-percent-chip {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #0284c7;
+}
+
+[data-theme="gameboy"] .level-percent-chip {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
 }
 
 /* ── 패널 공통 스타일 ────────────────────────────────────────────────── */
@@ -718,6 +919,18 @@ body::before {
   box-shadow: 0 0 10px var(--mint-dim), var(--lift-sm);
 }
 
+[data-theme="retropc"] .tab-btn.active {
+  background: #000080;
+  color: #ffffff;
+  border-color: #000080;
+}
+
+[data-theme="gameboy"] .tab-btn.active {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -751,6 +964,11 @@ body::before {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+[data-theme="retropc"] .form-row input {
+  background: #ffffff;
+  color: #111827;
+}
+
 .form-row input:focus {
   border-color: var(--mint);
   box-shadow: 0 0 12px var(--mint-dim);
@@ -769,6 +987,18 @@ body::before {
   box-shadow: var(--lift);
   margin-top: 8px;
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+[data-theme="retropc"] .submit-btn {
+  background: #000080;
+  color: #ffffff;
+  border-color: #404040;
+}
+
+[data-theme="gameboy"] .submit-btn {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
 }
 
 .submit-btn:hover {
@@ -834,6 +1064,16 @@ body::before {
   transition: all 0.12s ease;
 }
 
+[data-theme="retropc"] .action-tab {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+[data-theme="gameboy"] .action-tab {
+  background: #244b24;
+  color: #9bbc0f;
+}
+
 .action-tab:hover {
   background: var(--panel-hover);
   color: var(--ink);
@@ -845,6 +1085,18 @@ body::before {
   border-color: var(--mint);
   background: var(--mint-dim);
   box-shadow: 0 0 12px var(--mint-dim), var(--lift-sm);
+}
+
+[data-theme="retropc"] .action-tab.active {
+  background: #000080;
+  color: #ffffff;
+  border-color: #000080;
+}
+
+[data-theme="gameboy"] .action-tab.active {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
 }
 
 .tab-content {
@@ -861,7 +1113,7 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── 플래시카드 복습 화면 (최고의 몰입감) ───────────────────────────── */
+/* ── 플래시카드 복습 화면 (최고의 몰입감 & 100% 가독성 보장) ────────── */
 .card-viewer {
   display: flex;
   flex-direction: column;
@@ -873,54 +1125,75 @@ body::before {
   justify-content: space-between;
   align-items: center;
   font-family: var(--mono);
-  font-size: 0.92rem;
-  color: var(--ink-dim);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
   background: var(--panel-2);
   border: 2px solid var(--panel-border);
   border-radius: var(--radius-btn);
-  padding: 8px 16px;
+  padding: 10px 16px;
 }
 
+[data-theme="retropc"] .card-progress {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+[data-theme="gameboy"] .card-progress {
+  background: #244b24;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
+/* 뱃지: 어떤 테마에서도 100% 선명하게 읽히도록 전용 컬러 지정 */
 .badge-new {
   font-family: var(--mono);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  background: var(--cyan);
-  color: var(--bg-deep);
-  padding: 3px 8px;
+  background: var(--badge-new-bg);
+  color: var(--badge-new-text);
+  padding: 4px 10px;
   border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.05em;
 }
 
 .badge-review {
   font-family: var(--mono);
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  background: var(--amber);
-  color: var(--bg-deep);
-  padding: 3px 8px;
+  background: var(--badge-rev-bg);
+  color: var(--badge-rev-text);
+  padding: 4px 10px;
   border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.05em;
 }
 
-/* 플래시카드 본체 */
+/* 플래시카드 본체 (배경과 테두리가 테마에 따라 최적화) */
 .flashcard {
-  background: var(--bg-deep);
-  border: 3px solid var(--panel-border-bright);
+  background: var(--card-bg);
+  border: 3px solid var(--card-border);
   border-radius: 12px;
   padding: 44px 28px;
-  min-height: 240px;
+  min-height: 250px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   position: relative;
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), var(--lift);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), var(--lift);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="retropc"] .flashcard {
+  box-shadow: var(--lift);
 }
 
 .flashcard:hover {
   border-color: var(--mint);
-  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6), 0 0 16px var(--mint-dim), var(--lift);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 0 16px var(--mint-dim), var(--lift);
 }
 
 .card-lemma-row {
@@ -929,19 +1202,25 @@ body::before {
 
 .card-lemma {
   font-family: var(--mono);
-  font-size: clamp(2.4rem, 6vw, 3.2rem);
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
   font-weight: 800;
-  color: var(--mint);
+  color: var(--card-lemma);
   margin: 0;
   letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+[data-theme="arcade"] .card-lemma,
+[data-theme="synthwave"] .card-lemma {
   text-shadow: 2px 2px 0 #000, 0 0 20px var(--mint-glow);
 }
 
 .card-phonetic {
   font-family: var(--mono);
   font-size: 1.15rem;
-  color: var(--ink-dim);
-  margin-top: 6px;
+  font-weight: 600;
+  color: var(--card-phonetic);
+  margin-top: 8px;
   display: inline-block;
 }
 
@@ -963,11 +1242,33 @@ body::before {
   transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.12s ease;
 }
 
+[data-theme="retropc"] .flip-btn {
+  background: #000080;
+  color: #ffffff;
+  border-color: #000080;
+}
+
+[data-theme="gameboy"] .flip-btn {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .flip-btn:hover {
   background: var(--cyan-dim);
   color: var(--cyan);
   transform: translate(-1px, -1px);
   box-shadow: 5px 5px 0 #000;
+}
+
+[data-theme="retropc"] .flip-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+[data-theme="gameboy"] .flip-btn:hover {
+  background: #1e451e;
+  color: #e0f8d0;
 }
 
 .flip-btn:active {
@@ -979,11 +1280,11 @@ body::before {
   font-family: var(--mono);
   font-size: 0.74rem;
   font-weight: 700;
-  background: var(--panel);
-  border: 1px solid var(--ink-dim);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid currentColor;
   padding: 2px 8px;
   border-radius: 4px;
-  color: var(--ink-dim);
+  color: inherit;
 }
 
 /* 카드 뒷면 정의 및 예문 박스 */
@@ -993,52 +1294,63 @@ body::before {
   max-width: 640px;
 }
 
+/* 품사 뱃지: 항상 배경 대비가 확실하도록 */
 .pos-badge {
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  color: var(--cyan);
-  background: var(--cyan-dim);
-  border: 1px solid var(--cyan);
-  padding: 2px 10px;
+  color: var(--pos-text);
+  background: var(--pos-bg);
+  border: 2px solid var(--pos-border);
+  padding: 3px 12px;
   border-radius: 4px;
   display: inline-block;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
+/* 한국어 뜻 박스 */
 .card-definition {
-  font-size: 1.45rem;
-  font-weight: 700;
-  color: var(--ink);
-  line-height: 1.5;
-  background: var(--panel);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--card-def-text);
+  line-height: 1.45;
+  background: var(--card-def-bg);
   border: 2px solid var(--panel-border);
   border-radius: var(--radius-box);
-  padding: 16px 20px;
+  padding: 18px 24px;
   box-shadow: var(--lift-sm);
 }
 
+/* 예문 박스: 묻히지 않도록 선명한 텍스트와 보더 */
 .card-example-en {
-  font-size: 1.1rem;
-  color: var(--cyan);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--card-ex-text);
+  background: var(--card-ex-bg);
+  border: 2px solid var(--card-ex-border);
   margin-top: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  background: var(--cyan-dim);
-  border: 1px solid var(--cyan);
-  padding: 10px 16px;
+  gap: 10px;
+  padding: 12px 18px;
   border-radius: var(--radius-btn);
   line-height: 1.5;
+  box-shadow: var(--lift-sm);
 }
 
 .card-example-ko {
-  font-size: 0.98rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ink-dim);
   font-style: italic;
   margin-top: 8px;
+}
+
+[data-theme="gameboy"] .card-example-ko {
+  color: #1e451e;
 }
 
 .card-feedback {
@@ -1078,6 +1390,18 @@ body::before {
   transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.12s ease, background-color 0.12s ease;
 }
 
+[data-theme="retropc"] .ratings button {
+  background: #ffffff;
+  color: #111827;
+  border-color: #404040;
+}
+
+[data-theme="gameboy"] .ratings button {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .ratings button:hover {
   transform: translateY(-2px);
   border-color: currentColor;
@@ -1096,6 +1420,14 @@ body::before {
   letter-spacing: 0;
   text-transform: none;
   color: var(--ink-dim);
+}
+
+[data-theme="retropc"] .ratings button .interval {
+  color: #4b5563;
+}
+
+[data-theme="gameboy"] .ratings button .interval {
+  color: #9bbc0f;
 }
 
 .ratings button[data-label="Again"] {
@@ -1145,6 +1477,11 @@ body::before {
   box-shadow: var(--lift);
 }
 
+[data-theme="retropc"] .empty-study-box,
+[data-theme="retropc"] .study-complete-box {
+  background: #ffffff;
+}
+
 .complete-icon {
   font-size: 3rem;
   animation: bounce 1.2s infinite ease-in-out;
@@ -1162,6 +1499,16 @@ body::before {
   color: var(--mint);
   margin: 0;
   text-shadow: 0 0 12px var(--mint-glow);
+}
+
+[data-theme="retropc"] .study-complete-box h3 {
+  color: #047857;
+  text-shadow: none;
+}
+
+[data-theme="gameboy"] .study-complete-box h3 {
+  color: #e0f8d0;
+  text-shadow: none;
 }
 
 .study-complete-box p {
@@ -1192,6 +1539,18 @@ body::before {
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
+[data-theme="retropc"] .action-btn-primary {
+  background: #000080;
+  color: #ffffff;
+  border-color: #000080;
+}
+
+[data-theme="gameboy"] .action-btn-primary {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .action-btn-primary:hover {
   background: var(--mint-light);
   transform: translate(-1px, -1px);
@@ -1217,6 +1576,18 @@ body::before {
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
+[data-theme="retropc"] .action-btn-secondary {
+  background: #ffffff;
+  color: #000080;
+  border-color: #000080;
+}
+
+[data-theme="gameboy"] .action-btn-secondary {
+  background: #244b24;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .action-btn-secondary:hover {
   background: var(--cyan-dim);
   transform: translate(-1px, -1px);
@@ -1240,6 +1611,16 @@ body::before {
   align-items: center;
   gap: 12px;
   line-height: 1.5;
+}
+
+[data-theme="retropc"] .empty-note {
+  background: #ffffff;
+  color: #374151;
+}
+
+[data-theme="gameboy"] .empty-note {
+  background: #244b24;
+  color: #e0f8d0;
 }
 
 .empty-note::before {
@@ -1271,6 +1652,12 @@ body::before {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+[data-theme="retropc"] .dict-search-box input {
+  background: #ffffff;
+  color: #111827;
+  border-color: #404040;
+}
+
 .dict-search-box input:focus {
   border-color: var(--mint);
   box-shadow: 0 0 12px var(--mint-dim);
@@ -1288,6 +1675,16 @@ body::before {
   cursor: pointer;
   box-shadow: var(--lift);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+[data-theme="retropc"] .dict-search-btn {
+  background: #000080;
+  color: #ffffff;
+}
+
+[data-theme="gameboy"] .dict-search-btn {
+  background: #0f380f;
+  color: #e0f8d0;
 }
 
 .dict-search-btn:hover {
@@ -1310,6 +1707,15 @@ body::before {
   box-shadow: var(--lift);
 }
 
+[data-theme="retropc"] .dict-result-card {
+  background: #ffffff;
+}
+
+[data-theme="gameboy"] .dict-result-card {
+  background: #244b24;
+  border-color: #0f380f;
+}
+
 .dict-header-row {
   display: flex;
   align-items: baseline;
@@ -1327,14 +1733,24 @@ body::before {
   margin: 0;
 }
 
+[data-theme="retropc"] .dict-lemma {
+  color: #000080;
+}
+
+[data-theme="gameboy"] .dict-lemma {
+  color: #e0f8d0;
+}
+
 .dict-phonetic {
   font-family: var(--mono);
   color: var(--ink-dim);
   font-size: 1rem;
 }
 
-/* 1. 스피커 발음 버튼 */
-.btn-speak {
+/* 스피커 발음 버튼 */
+.btn-speak,
+.btn-speaker,
+.btn-speaker-mini {
   font-size: 1.15rem;
   background: var(--panel-2);
   border: 2px solid var(--panel-border);
@@ -1344,20 +1760,37 @@ body::before {
   color: var(--ink);
   box-shadow: var(--lift-sm);
   transition: all 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.btn-speak:hover {
+[data-theme="retropc"] .btn-speak,
+[data-theme="retropc"] .btn-speaker,
+[data-theme="retropc"] .btn-speaker-mini {
+  background: #e5e7eb;
+  color: #111827;
+  border-color: #404040;
+}
+
+[data-theme="gameboy"] .btn-speak,
+[data-theme="gameboy"] .btn-speaker,
+[data-theme="gameboy"] .btn-speaker-mini {
+  background: #0f380f;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
+.btn-speak:hover,
+.btn-speaker:hover,
+.btn-speaker-mini:hover {
   color: var(--cyan);
   border-color: var(--cyan);
   background: var(--cyan-dim);
   transform: scale(1.08);
 }
 
-.btn-speak:active {
-  transform: scale(0.95);
-}
-
-/* 2. 한국어 사전 뜻 및 미국인 빈출 실생활 문장 */
+/* 한국어 사전 뜻 및 미국인 빈출 실생활 문장 */
 .dict-korean-meaning-box {
   background: var(--panel-2);
   border: 2px solid var(--mint);
@@ -1368,6 +1801,16 @@ body::before {
   align-items: center;
   gap: 12px;
   box-shadow: var(--lift-sm);
+}
+
+[data-theme="retropc"] .dict-korean-meaning-box {
+  background: #f0fdf4;
+  border-color: #047857;
+}
+
+[data-theme="gameboy"] .dict-korean-meaning-box {
+  background: #0f380f;
+  border-color: #0f380f;
 }
 
 .korean-meaning-badge {
@@ -1381,10 +1824,24 @@ body::before {
   white-space: nowrap;
 }
 
+[data-theme="retropc"] .korean-meaning-badge {
+  background: #047857;
+  color: #ffffff;
+}
+
+[data-theme="gameboy"] .korean-meaning-badge {
+  background: #9bbc0f;
+  color: #0f380f;
+}
+
 .korean-meaning-text {
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--ink);
+}
+
+[data-theme="gameboy"] .korean-meaning-text {
+  color: #e0f8d0;
 }
 
 /* 미국인이 실생활에서 자주 쓰는 문장 박스 (핵심 강조) */
@@ -1397,30 +1854,65 @@ body::before {
   box-shadow: 0 0 16px var(--cyan-dim), var(--lift);
 }
 
+[data-theme="retropc"] .dict-real-life-box {
+  background: #f0f9ff;
+  border: 2px solid #0284c7;
+}
+
+[data-theme="gameboy"] .dict-real-life-box {
+  background: #244b24;
+  border: 2px solid #0f380f;
+}
+
 .real-life-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 800;
   color: var(--cyan);
   margin-bottom: 10px;
+}
+
+[data-theme="retropc"] .real-life-header {
+  color: #0369a1;
+}
+
+[data-theme="gameboy"] .real-life-header {
+  color: #9bbc0f;
 }
 
 .real-life-en-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-size: 1.18rem;
+  font-weight: 800;
   color: #fff;
   line-height: 1.45;
 }
 
+[data-theme="retropc"] .real-life-en-row {
+  color: #0f172a;
+}
+
+[data-theme="gameboy"] .real-life-en-row {
+  color: #e0f8d0;
+}
+
 .real-life-ko {
-  font-size: 0.98rem;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--ink-dim);
   margin-top: 6px;
+}
+
+[data-theme="retropc"] .real-life-ko {
+  color: #4b5563;
+}
+
+[data-theme="gameboy"] .real-life-ko {
+  color: #9bbc0f;
 }
 
 .real-life-btn-row {
@@ -1441,8 +1933,18 @@ body::before {
   transition: all 0.1s ease;
 }
 
+[data-theme="retropc"] .real-life-add-btn {
+  background: #000080;
+  color: #ffffff;
+}
+
+[data-theme="gameboy"] .real-life-add-btn {
+  background: #0f380f;
+  color: #e0f8d0;
+}
+
 .real-life-add-btn:hover {
-  background: #7dd3fc;
+  filter: brightness(1.1);
   transform: translate(-1px, -1px);
 }
 
@@ -1470,6 +1972,15 @@ body::before {
   box-shadow: var(--lift-sm);
 }
 
+[data-theme="retropc"] .sense-item {
+  background: #ffffff;
+}
+
+[data-theme="gameboy"] .sense-item {
+  background: #0f380f;
+  border-color: #0f380f;
+}
+
 .sense-main {
   flex: 1;
 }
@@ -1481,10 +1992,22 @@ body::before {
   line-height: 1.45;
 }
 
+[data-theme="gameboy"] .sense-def {
+  color: #e0f8d0;
+}
+
 .sense-example {
   font-size: 0.9rem;
   color: var(--cyan);
   margin-top: 6px;
+}
+
+[data-theme="retropc"] .sense-example {
+  color: #0369a1;
+}
+
+[data-theme="gameboy"] .sense-example {
+  color: #9bbc0f;
 }
 
 .sense-actions {
@@ -1505,6 +2028,18 @@ body::before {
   cursor: pointer;
   box-shadow: var(--lift-sm);
   transition: all 0.1s ease;
+}
+
+[data-theme="retropc"] .btn-add-sense {
+  background: #ffffff;
+  color: #047857;
+  border-color: #047857;
+}
+
+[data-theme="gameboy"] .btn-add-sense {
+  background: #306230;
+  color: #e0f8d0;
+  border-color: #9bbc0f;
 }
 
 .btn-add-sense:hover {
@@ -1538,6 +2073,11 @@ body::before {
   outline: none;
 }
 
+[data-theme="retropc"] .cards-search-input {
+  background: #ffffff;
+  color: #111827;
+}
+
 .cards-search-input:focus {
   border-color: var(--mint);
 }
@@ -1560,6 +2100,15 @@ body::before {
   transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
+[data-theme="retropc"] .card-item {
+  background: #ffffff;
+}
+
+[data-theme="gameboy"] .card-item {
+  background: #244b24;
+  border-color: #0f380f;
+}
+
 .card-item:hover {
   border-color: var(--mint);
   transform: translateY(-2px);
@@ -1579,11 +2128,23 @@ body::before {
   color: var(--mint);
 }
 
+[data-theme="retropc"] .card-item-word {
+  color: #000080;
+}
+
+[data-theme="gameboy"] .card-item-word {
+  color: #e0f8d0;
+}
+
 .card-item-meaning {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--ink);
   line-height: 1.4;
+}
+
+[data-theme="gameboy"] .card-item-meaning {
+  color: #9bbc0f;
 }
 
 .card-item-actions {
@@ -1620,12 +2181,29 @@ body::before {
   box-shadow: var(--lift);
 }
 
+[data-theme="retropc"] .stats-chart-wrap {
+  background: #ffffff;
+}
+
+[data-theme="gameboy"] .stats-chart-wrap {
+  background: #244b24;
+  border-color: #0f380f;
+}
+
 .stats-chart-title {
   font-family: var(--mono);
   font-size: 1.05rem;
   font-weight: 800;
   color: var(--mint);
   margin: 0 0 20px;
+}
+
+[data-theme="retropc"] .stats-chart-title {
+  color: #000080;
+}
+
+[data-theme="gameboy"] .stats-chart-title {
+  color: #e0f8d0;
 }
 
 .stats-bars {
@@ -1657,6 +2235,14 @@ body::before {
   min-height: 4px;
 }
 
+[data-theme="retropc"] .stat-bar-pillar {
+  background: #000080;
+}
+
+[data-theme="gameboy"] .stat-bar-pillar {
+  background: #9bbc0f;
+}
+
 .stat-bar-val {
   font-family: var(--mono);
   font-size: 0.75rem;
@@ -1670,6 +2256,11 @@ body::before {
   font-weight: 700;
   color: var(--ink-dim);
   margin-top: 4px;
+}
+
+[data-theme="gameboy"] .stat-bar-day,
+[data-theme="gameboy"] .stat-bar-val {
+  color: #e0f8d0;
 }
 
 /* ── Retention 선택기 ───────────────────────────────────────────────── */
@@ -1695,6 +2286,17 @@ body::before {
   transition: all 0.12s ease;
 }
 
+[data-theme="retropc"] .retention label {
+  background: #ffffff;
+  color: #1f2937;
+}
+
+[data-theme="gameboy"] .retention label {
+  background: #244b24;
+  color: #e0f8d0;
+  border-color: #0f380f;
+}
+
 .retention label:hover {
   background: var(--panel-hover);
   border-color: var(--mint);
@@ -1713,6 +2315,10 @@ body::before {
   display: grid;
   place-content: center;
   cursor: pointer;
+}
+
+[data-theme="retropc"] .retention input[type="radio"] {
+  background: #ffffff;
 }
 
 .retention input[type="radio"]::before {
@@ -1738,6 +2344,18 @@ body::before {
   border-color: var(--mint);
   background: var(--mint-dim);
   color: var(--ink);
+}
+
+[data-theme="retropc"] .retention label[data-checked="true"] {
+  background: #e0f2fe;
+  border-color: #000080;
+  color: #000080;
+}
+
+[data-theme="gameboy"] .retention label[data-checked="true"] {
+  background: #0f380f;
+  border-color: #9bbc0f;
+  color: #e0f8d0;
 }
 
 /* ── 반응형 모바일 ──────────────────────────────────────────────────── */
