@@ -672,53 +672,56 @@
   }
 
   // ── 미국인들이 자주 쓰는 실생활 문장 조회 ──────────────────
-  async function fetchUsDailySentence(lemma, existingExample) {
-    if (existingExample && existingExample.split(' ').length <= 22) {
-      const ko = await translateText(existingExample);
-      return { sentenceEn: existingExample, sentenceKo: ko };
+  async function fetchUsDailySentence(lemma, senses, mainPos) {
+    const cleanLemma = lemma.trim();
+    if (!cleanLemma) return null;
+
+    // 1순위: 사전 API의 senses 중에서 lemma가 올바르게 포함된 자연스러운 실제 예문 탐색
+    if (Array.isArray(senses)) {
+      const wordRegex = new RegExp(`\\b${cleanLemma}\\b`, 'i');
+      for (const s of senses) {
+        const ex = s.example_en?.trim();
+        if (!ex) continue;
+        const words = ex.split(/\s+/);
+        if (words.length >= 3 && words.length <= 22 && wordRegex.test(ex)) {
+          const ko = await translateText(ex);
+          return { sentenceEn: ex, sentenceKo: ko };
+        }
+      }
     }
 
+    // 2순위: 서버 엔드포인트 (/api/dict/sentence?lemma=...)를 통해 Tatoeba 실생활 예문 조회
     try {
-      const tatoebaUrl = `https://tatoeba.org/en/api_v0/search?from=eng&query=${encodeURIComponent(lemma)}&sort=relevance`;
-      const res = await fetch(tatoebaUrl);
+      const res = await api(`/api/dict/sentence?lemma=${encodeURIComponent(cleanLemma)}`);
       if (res.ok) {
         const data = await res.json();
-        const results = data.results || [];
-        for (const item of results) {
-          const text = item.text?.trim();
-          if (!text) continue;
-          const wordCount = text.split(' ').length;
-          if (wordCount >= 4 && wordCount <= 18) {
-            let koText = '';
-            if (Array.isArray(item.translations)) {
-              for (const group of item.translations) {
-                for (const t of group) {
-                  if (t.lang === 'kor' && t.text) {
-                    koText = t.text;
-                    break;
-                  }
-                }
-                if (koText) break;
-              }
-            }
-            if (!koText) {
-              koText = await translateText(text);
-            }
-            return { sentenceEn: text, sentenceKo: koText };
+        if (data.sentence_en) {
+          let ko = data.sentence_ko;
+          if (!ko) {
+            ko = await translateText(data.sentence_en);
           }
+          return { sentenceEn: data.sentence_en, sentenceKo: ko };
         }
       }
     } catch (_) {}
 
-    const sampleSentences = [
-      `We need to find a comprehensive and practical solution for this issue.`,
-      `Good preparation is essential for achieving success in any project.`,
-      `Please let me know if you need any additional information.`,
-      `It is important to understand how this word is used in daily life.`
-    ];
-    const fallbackEn = sampleSentences[0].replace('comprehensive', lemma);
-    const fallbackKo = await translateText(fallbackEn);
-    return { sentenceEn: fallbackEn, sentenceKo: fallbackKo };
+    // 3순위 (비상 fallback): 품사에 맞는 올바른 문법 구조의 자연스러운 예문 생성
+    const pos = (mainPos || '').toLowerCase();
+    let sentenceEn = '';
+    if (pos.includes('verb')) {
+      sentenceEn = `I want to ${cleanLemma} this properly in daily life.`;
+    } else if (pos.includes('noun')) {
+      sentenceEn = `This is a very useful ${cleanLemma} for all of us.`;
+    } else if (pos.includes('adj')) {
+      sentenceEn = `It is important to stay ${cleanLemma} in this situation.`;
+    } else if (pos.includes('adv')) {
+      sentenceEn = `She explained the process ${cleanLemma} to everyone.`;
+    } else {
+      sentenceEn = `Could you explain how to use "${cleanLemma}" in this sentence?`;
+    }
+
+    const sentenceKo = await translateText(sentenceEn);
+    return { sentenceEn, sentenceKo };
   }
 
   async function renderDictResults(data, container) {
@@ -739,10 +742,10 @@
     }
 
     // 한국어 뜻과 미국인 빈출 실생활 문장 비동기 병렬 조회
-    const firstEx = word.senses.find((s) => s.example_en)?.example_en;
+    const primaryPos = word.senses.find((s) => s.pos)?.pos || '';
     const [koInfo, usSentence] = await Promise.all([
       fetchKoreanMeanings(word.lemma),
-      fetchUsDailySentence(word.lemma, firstEx),
+      fetchUsDailySentence(word.lemma, word.senses, primaryPos),
     ]);
 
     // 한국어 대표 뜻 정리

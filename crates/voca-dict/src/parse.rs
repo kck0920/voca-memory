@@ -62,7 +62,19 @@ struct ApiResponse {
     word: Option<String>,
     phonetic: Option<String>,
     #[serde(default)]
+    #[allow(dead_code)]
+    phonetics: Option<serde_json::Value>,
+    #[serde(default)]
     meanings: Vec<ApiMeaning>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    license: Option<serde_json::Value>,
+    #[serde(default, rename = "sourceUrls")]
+    #[allow(dead_code)]
+    source_urls: Option<serde_json::Value>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    origin: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -74,6 +86,12 @@ struct ApiMeaning {
     part_of_speech: Option<String>,
     #[serde(default)]
     definitions: Vec<ApiDefinition>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    synonyms: Option<Vec<String>>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    antonyms: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -83,6 +101,12 @@ struct ApiDefinition {
     definition: Option<String>,
     #[serde(default)]
     example: Option<String>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    synonyms: Option<Vec<String>>,
+    #[serde(default)]
+    #[allow(dead_code)]
+    antonyms: Option<Vec<String>>,
 }
 
 /// 응답 JSON 을 파싱한다.
@@ -221,6 +245,33 @@ mod tests {
         assert_eq!(word.senses[0].pos.as_deref(), Some("verb"));
         assert_eq!(word.senses[1].definition, "to manage");
         assert_eq!(word.senses[2].pos.as_deref(), Some("noun"));
+    }
+
+    #[test]
+    fn a_dictionaryapi_response_with_synonyms_and_license_is_parsed() {
+        let body = r#"[{
+            "word": "have",
+            "phonetics": [{"audio": "https://example.com/have.mp3"}],
+            "meanings": [
+                {
+                    "partOfSpeech": "verb",
+                    "definitions": [
+                        {"definition": "To possess, own.", "synonyms": [], "antonyms": [], "example": "I have a car."}
+                    ],
+                    "synonyms": ["possess"],
+                    "antonyms": []
+                }
+            ],
+            "license": {"name": "CC BY-SA"},
+            "sourceUrls": ["https://en.wiktionary.org/wiki/have"]
+        }]"#;
+        let (outcome, word) = parse(body);
+        assert_eq!(outcome, ParseOutcome::Usable);
+        let word = word.unwrap();
+        assert_eq!(word.lemma, "have");
+        assert_eq!(word.senses.len(), 1);
+        assert_eq!(word.senses[0].definition, "To possess, own.");
+        assert_eq!(word.senses[0].example_en.as_deref(), Some("I have a car."));
     }
 
     #[test]

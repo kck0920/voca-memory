@@ -134,6 +134,68 @@ impl Dictionary {
         }
     }
 
+    /// 단어가 포함된 자연스러운 실생활 예문과 한국어 번역을 가져온다 (Tatoeba API 연동).
+    pub async fn fetch_daily_sentence(&self, lemma: &str) -> Option<(String, String)> {
+        let lemma = lemma.trim();
+        if lemma.is_empty() || lemma.len() > 50 {
+            return None;
+        }
+
+        let url = format!(
+            "https://tatoeba.org/en/api_v0/search?from=eng&to=kor&query={}&sort=relevance",
+            url_escape_query(lemma)
+        );
+
+        let res = match timeout(FETCH_TIMEOUT, self.client.get(&url).send()).await {
+            Ok(Ok(r)) if r.status().is_success() => r,
+            _ => return None,
+        };
+
+        let json: serde_json::Value = res.json().await.ok()?;
+        let results = json.get("results")?.as_array()?;
+        let lemma_lower = lemma.to_lowercase();
+
+        for item in results {
+            let text = item.get("text")?.as_str()?.trim();
+            let words: Vec<&str> = text.split_whitespace().collect();
+            if words.len() < 3 || words.len() > 18 {
+                continue;
+            }
+
+            // 문장 내에 lemma가 단어로 포함되어 있는지 검사
+            let contains_word = words.iter().any(|w| {
+                let clean = w.trim_matches(|c: char| !c.is_alphanumeric()).to_lowercase();
+                clean == lemma_lower
+            });
+            if !contains_word {
+                continue;
+            }
+
+            let mut ko_text = String::new();
+            if let Some(trans_groups) = item.get("translations").and_then(|t| t.as_array()) {
+                for group in trans_groups {
+                    if let Some(trans_list) = group.as_array() {
+                        for t in trans_list {
+                            if t.get("lang").and_then(|l| l.as_str()) == Some("kor") {
+                                if let Some(kor_str) = t.get("text").and_then(|s| s.as_str()) {
+                                    ko_text = kor_str.trim().to_owned();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if !ko_text.is_empty() {
+                        break;
+                    }
+                }
+            }
+
+            return Some((text.to_owned(), ko_text));
+        }
+
+        None
+    }
+
     /// 표기형의 뜻들을 찾아 온다.
     pub async fn lookup(&self, lemma: &str) -> Lookup {
         let lemma = lemma.trim();
@@ -168,8 +230,12 @@ impl Dictionary {
         }
 
         // 2. 이미 로컬 DB에 등록된 사전 단어인지 확인 (시드 단어 또는 이전 저장 단어)
-        if let Ok(Some(word_view)) = self.store.find_dictionary_word_by_lemma(lemma).await {
-            return Lookup::FromCache(Box::new(word_view));
+        let cached_word = self.store.find_dictionary_word_by_lemma(lemma).await.ok().flatten();
+        if let Some(ref word_view) = cached_word {
+            // 예문이 하나라도 들어있는 양질의 데이터면 네트워크 없이 즉시 반환
+            if word_view.senses.iter().any(|s| s.example_en.is_some()) {
+                return Lookup::FromCache(Box::new(word_view.clone()));
+            }
         }
 
         // 3. 네트워크
@@ -191,6 +257,9 @@ impl Dictionary {
                         .store
                         .dict_cache_put(lemma, "", FetchStatus::Error, FAILURE_TTL_SECONDS)
                         .await;
+                    if let Some(w) = cached_word {
+                        return Lookup::FromCache(Box::new(w));
+                    }
                     if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
                         return fallback;
                     }
@@ -212,6 +281,9 @@ impl Dictionary {
                     .store
                     .dict_cache_put(lemma, "", FetchStatus::Error, FAILURE_TTL_SECONDS)
                     .await;
+                if let Some(w) = cached_word {
+                    return Lookup::FromCache(Box::new(w));
+                }
                 if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
                     return fallback;
                 }
@@ -222,6 +294,9 @@ impl Dictionary {
                 // 알 수 없다. 새 요청을 시도하지 않는다. 너무 느린 API 를 반복 호출하면
                 // 그것도 DoS 다.
                 tracing::warn!(lemma, "사전 API 응답이 시간 내에 오지 않았다");
+                if let Some(w) = cached_word {
+                    return Lookup::FromCache(Box::new(w));
+                }
                 if let Some(fallback) = self.try_datamuse_fallback(lemma).await {
                     return fallback;
                 }

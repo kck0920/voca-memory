@@ -350,6 +350,40 @@ pub async fn audio_tts(
     }
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct SentenceQuery {
+    pub lemma: String,
+}
+
+#[derive(Debug, serde::Serialize)]
+pub struct SentenceBody {
+    pub sentence_en: Option<String>,
+    pub sentence_ko: Option<String>,
+}
+
+pub async fn dict_sentence(
+    State(state): State<AppState>,
+    axum::extract::Query(q): axum::extract::Query<SentenceQuery>,
+) -> Response {
+    let lemma = q.lemma.trim();
+    if lemma.is_empty() || lemma.len() > MAX_LEMMA_LEN {
+        return axum::http::StatusCode::BAD_REQUEST.into_response();
+    }
+
+    match state.dictionary().fetch_daily_sentence(lemma).await {
+        Some((en, ko)) => axum::Json(SentenceBody {
+            sentence_en: Some(en),
+            sentence_ko: if ko.is_empty() { None } else { Some(ko) },
+        })
+        .into_response(),
+        None => axum::Json(SentenceBody {
+            sentence_en: None,
+            sentence_ko: None,
+        })
+        .into_response(),
+    }
+}
+
 /// 표기형 길이 상한.
 ///
 /// 외부 요청을 그대로 URL 에 넣어 보낸다. 상한이 없으면 한 번에 아주 긴 문자열로

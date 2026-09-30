@@ -102,6 +102,7 @@ pub fn build_router(state: AppState) -> Router {
         .route("/api/auth/logout", post(routes::logout))
         .route("/api/auth/me", get(routes::me))
         .route("/api/dict/lookup", get(routes::lookup_word))
+        .route("/api/dict/sentence", get(routes::dict_sentence))
         .route("/api/audio/tts", get(routes::audio_tts))
         .route("/api/study/queue", get(study::study_queue))
         .route("/api/study/review", post(study::submit_review))
