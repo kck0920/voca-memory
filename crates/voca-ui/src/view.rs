@@ -89,18 +89,27 @@ pub fn DashboardHeader(view: DashboardView) -> impl IntoView {
 
     view! {
         <header class="dashboard-header" data-testid="dashboard-header">
-            <p class="streak" data-risk=move || risk.to_string()>
-                {streak_label}
-                <Show when=move || risk fallback=|| ()>
-                    <span class="streak-at-risk">"오늘 아직 안 했습니다"</span>
-                </Show>
-            </p>
-            <p class="due">
-                <b>{view.reviews_due}</b>
-                "장 복습 · "
-                <b>{view.new_remaining}</b>
-                "장 새 단어"
-            </p>
+            <div class="hud-top-row">
+                <div class="streak-box">
+                    <p class="streak" data-risk=move || risk.to_string()>
+                        <span class="streak-icon" aria-hidden="true">"🔥"</span>
+                        <span class="streak-label-text">{streak_label}</span>
+                        <Show when=move || risk fallback=|| ()>
+                            <span class="streak-at-risk">"오늘 아직 안 했습니다"</span>
+                        </Show>
+                    </p>
+                </div>
+                <div class="quest-box">
+                    <p class="due">
+                        <span class="quest-icon" aria-hidden="true">"⚔️ "</span>
+                        <b>{view.reviews_due}</b>
+                        "장 복습 · "
+                        <span class="quest-icon" aria-hidden="true">"📦 "</span>
+                        <b>{view.new_remaining}</b>
+                        "장 새 단어"
+                    </p>
+                </div>
+            </div>
             <LevelBar
                 level=view.level
                 percent=view.level_percent()
@@ -138,9 +147,18 @@ pub fn LevelBar(level: u32, percent: u32, into: u32, span: u32) -> impl IntoView
     let title = level_title(level);
     view! {
         <div class="level" data-testid="level-bar" data-level=level>
-            <span class="level-label">{format!("Lv {level} {title}")}</span>
-            <progress class="level-progress" value=percent max=100 />
-            <span class="level-xp">{format!("{into} / {span} XP")}</span>
+            <div class="level-label">
+                <span class="level-tag">{format!("Lv {level}")}</span>
+                <span class="level-title-badge">{title}</span>
+            </div>
+            <div class="level-progress-wrap">
+                <progress class="level-progress" value=percent max=100 />
+                <span class="progress-glow-point" style=format!("left: {percent}%;") aria-hidden="true"></span>
+            </div>
+            <div class="level-xp-wrap">
+                <span class="level-xp">{format!("{into} / {span} XP")}</span>
+                <span class="level-percent-chip">{format!("{percent}%")}</span>
+            </div>
         </div>
     }
 }

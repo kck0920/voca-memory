@@ -106,6 +106,147 @@
     } catch (_) {}
   }
 
+  // ── 레트로 8-Bit Web Audio API 효과음 엔진 ────────────────
+  let audioCtx = null;
+  let sfxEnabled = localStorage.getItem('voca_sfx_enabled') !== 'false';
+
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playSfx(type) {
+    if (!sfxEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      if (type === 'click') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(780, now + 0.05);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      } else if (type === 'flip') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'good' || type === 'easy') {
+        [523.25, 659.25].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now + i * 0.07);
+          gain.gain.setValueAtTime(0.07, now + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.12);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.07);
+          osc.stop(now + i * 0.07 + 0.12);
+        });
+      } else if (type === 'hard') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(370, now + 0.1);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'again') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.exponentialRampToValueAtTime(160, now + 0.12);
+        gain.gain.setValueAtTime(0.09, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if (type === 'victory') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(freq, now + i * 0.09);
+          gain.gain.setValueAtTime(0.09, now + i * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.2);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + i * 0.09);
+          osc.stop(now + i * 0.09 + 0.2);
+        });
+      }
+    } catch (_) {}
+  }
+
+  function setupThemeAndSfx() {
+    const savedTheme = localStorage.getItem('voca_theme') || 'arcade';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    const themeSelect = document.getElementById('theme-select');
+    if (themeSelect) {
+      themeSelect.value = savedTheme;
+      themeSelect.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('voca_theme', theme);
+        playSfx('click');
+      });
+    }
+
+    const sfxBtn = document.getElementById('sfx-toggle-btn');
+    const sfxIcon = document.getElementById('sfx-icon');
+    const sfxLabel = document.getElementById('sfx-label');
+
+    function updateSfxUi() {
+      if (sfxBtn) {
+        if (sfxEnabled) {
+          sfxBtn.classList.remove('muted');
+          if (sfxIcon) sfxIcon.textContent = '🔊';
+          if (sfxLabel) sfxLabel.textContent = 'SFX';
+        } else {
+          sfxBtn.classList.add('muted');
+          if (sfxIcon) sfxIcon.textContent = '🔇';
+          if (sfxLabel) sfxLabel.textContent = 'MUTED';
+        }
+      }
+    }
+    updateSfxUi();
+
+    sfxBtn?.addEventListener('click', () => {
+      sfxEnabled = !sfxEnabled;
+      localStorage.setItem('voca_sfx_enabled', sfxEnabled);
+      updateSfxUi();
+      if (sfxEnabled) playSfx('click');
+    });
+  }
+
   // ── 레벨 칭호 매핑 ────────────────────────────────────────
   function getLevelTitle(level) {
     const titles = {
@@ -126,6 +267,7 @@
   document.addEventListener('DOMContentLoaded', init);
 
   async function init() {
+    setupThemeAndSfx();
     setupAuthTabs();
     setupAuthForms();
     setupActionNav();
@@ -293,6 +435,7 @@
     const tabs = document.querySelectorAll('.action-tab');
     tabs.forEach((tab) => {
       tab.addEventListener('click', () => {
+        playSfx('click');
         tabs.forEach((t) => t.classList.remove('active'));
         tab.classList.add('active');
 
@@ -503,6 +646,7 @@
 
   function flipCard() {
     isCardFlipped = true;
+    playSfx('flip');
     const front = document.querySelector('.card-front');
     const back = document.querySelector('.card-back');
     const flipBtn = document.getElementById('flip-btn');
@@ -512,6 +656,14 @@
   }
 
   async function submitReview(cardId, rating) {
+    if (rating === 'again') {
+      playSfx('again');
+    } else if (rating === 'hard') {
+      playSfx('hard');
+    } else {
+      playSfx('good');
+    }
+
     const feedback = document.getElementById('card-feedback');
     if (feedback) feedback.textContent = '평가 기록 중...';
 
@@ -540,10 +692,12 @@
   }
 
   function renderStudyComplete(container) {
+    playSfx('victory');
     container.innerHTML = `
       <div class="study-complete-box">
-        <h3 class="complete-title">✨ 오늘의 복습 완료!</h3>
-        <p class="complete-desc">오늘 계획된 카드를 모두 학습했습니다. 스트릭이 이어집니다!</p>
+        <div class="complete-icon" aria-hidden="true">🎉</div>
+        <h3 class="complete-title">✨ 오늘의 복습 미션 완료!</h3>
+        <p class="complete-desc">오늘 계획된 카드를 모두 클리어했습니다! 콤보 스트릭이 이어집니다.</p>
         <div class="empty-actions">
           <button type="button" class="action-btn-primary" id="btn-study-more-5-complete">⚡ +5장 더 학습하기</button>
           <button type="button" class="action-btn-secondary" id="btn-refresh-queue">다시 확인하기</button>

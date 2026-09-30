@@ -22,6 +22,15 @@ use view::{DashboardHeader, DashboardView};
 pub fn App(initial: DashboardView) -> impl IntoView {
     view! {
         <main class="app">
+            <div class="window-title-bar">
+                <div class="window-dots" aria-hidden="true">
+                    <span class="dot dot-red"></span>
+                    <span class="dot dot-yellow"></span>
+                    <span class="dot dot-green"></span>
+                    <span class="window-title-text">"VOCA-STATION // ARCADE VOCABULARY SYSTEM"</span>
+                </div>
+                <div class="window-meta-tag">"FSRS-POWERED MEMORY"</div>
+            </div>
             <header class="app-topbar">
                 <div class="brand-group">
                     <div class="brand-title-wrap">
@@ -38,9 +47,24 @@ pub fn App(initial: DashboardView) -> impl IntoView {
                         </span>
                         <h1 class="brand">"Voca Memory"</h1>
                     </div>
-                    <p class="brand-sub">"영어 어휘장 · 복습 터미널"</p>
+                    <p class="brand-sub">"영어 어휘장 · 레트로 복습 콘솔"</p>
                 </div>
-                <div id="auth-status" class="auth-status"></div>
+                <div class="topbar-controls">
+                    <button type="button" id="sfx-toggle-btn" class="mini-tool-btn" title="8-Bit 효과음 켜기/끄기" aria-label="8-bit 레트로 사운드 토글">
+                        <span id="sfx-icon">"🔊"</span>
+                        <span id="sfx-label" class="btn-label-text">"SFX"</span>
+                    </button>
+                    <div class="theme-picker-wrap">
+                        <label for="theme-select" class="theme-label" aria-hidden="true">"🎨"</label>
+                        <select id="theme-select" class="theme-select" aria-label="레트로 테마 변경">
+                            <option value="arcade">"👾 8-Bit 아케이드"</option>
+                            <option value="synthwave">"📼 신스웨이브 80s"</option>
+                            <option value="gameboy">"🕹️ 클래식 게임보이"</option>
+                            <option value="retropc">"💾 90s 레트로 PC"</option>
+                        </select>
+                    </div>
+                    <div id="auth-status" class="auth-status"></div>
+                </div>
             </header>
 
             <DashboardHeader view=initial />
