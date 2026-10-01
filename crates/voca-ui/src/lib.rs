@@ -124,9 +124,15 @@ pub fn App(initial: DashboardView) -> impl IntoView {
 
                 // 2. 단어 검색 및 추가 탭
                 <div id="tab-dict-content" class="tab-content hidden">
-                    <form id="dict-search-form" class="search-bar">
-                        <input type="text" id="dict-search-input" placeholder="영단어 검색 (예: run, keep, make, take...)" />
-                        <button type="submit" class="action-btn-primary">"사전 검색"</button>
+                    <form id="dict-search-form" class="dict-search-box search-bar">
+                        <div class="dict-search-input-wrap">
+                            <span class="dict-search-prompt" aria-hidden="true">">"</span>
+                            <input type="text" id="dict-search-input" class="dict-search-input" placeholder="영단어 검색 (예: run, keep, make, take...)" autocomplete="off" spellcheck="false" />
+                        </div>
+                        <button type="submit" class="dict-search-btn action-btn-primary">
+                            <span class="dict-search-btn-icon" aria-hidden="true">"🔍"</span>
+                            <span>"사전 검색"</span>
+                        </button>
                     </form>
                     <div id="dict-results"></div>
 
@@ -162,7 +168,10 @@ pub fn App(initial: DashboardView) -> impl IntoView {
                 // 3. 내 단어장 탭
                 <div id="tab-cards-content" class="tab-content hidden">
                     <div class="cards-header-row">
-                        <input type="text" id="cards-search-input" class="search-input-inline" placeholder="내 단어장에서 단어/뜻 검색..." />
+                        <div class="cards-search-wrap">
+                            <span class="cards-search-prompt" aria-hidden="true">">"</span>
+                            <input type="text" id="cards-search-input" class="search-input-inline" placeholder="내 단어장에서 단어/뜻 검색..." autocomplete="off" spellcheck="false" />
+                        </div>
                         <span id="cards-count-badge" class="badge-count">"0장"</span>
                     </div>
                     <div id="cards-list-container" class="cards-list-box">

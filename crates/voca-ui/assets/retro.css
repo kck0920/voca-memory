@@ -1539,6 +1539,22 @@ body::before {
   transition: transform 0.08s ease, box-shadow 0.08s ease;
 }
 
+[data-theme="synthwave"] .action-btn-primary {
+  background: linear-gradient(135deg, #ff71ce 0%, #f43f5e 100%);
+  color: #07020d;
+  border-color: #000000;
+  box-shadow: 3px 3px 0 #01cdfe, 0 0 12px rgba(255, 113, 206, 0.4);
+}
+
+[data-theme="synthwave"] .action-btn-primary:hover {
+  background: linear-gradient(135deg, #ff94dd 0%, #fb7185 100%);
+  box-shadow: 4px 4px 0 #01cdfe, 0 0 18px rgba(255, 113, 206, 0.65);
+}
+
+[data-theme="synthwave"] .action-btn-primary:active {
+  box-shadow: 1px 1px 0 #01cdfe;
+}
+
 [data-theme="retropc"] .action-btn-primary {
   background: #000080;
   color: #ffffff;
@@ -1574,6 +1590,13 @@ body::before {
   cursor: pointer;
   box-shadow: var(--lift);
   transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+[data-theme="synthwave"] .action-btn-secondary {
+  background: #200f3b;
+  color: #38bdf8;
+  border-color: #38bdf8;
+  box-shadow: 3px 3px 0 #ff71ce;
 }
 
 [data-theme="retropc"] .action-btn-secondary {
@@ -1631,70 +1654,349 @@ body::before {
   font-size: 1.1rem;
 }
 
-/* ── 단어 사전 검색 화면 ────────────────────────────────────────────── */
-.dict-search-box {
+/* ── 단어 사전 검색 화면 & 내 단어장 검색 바 ───────────────────────── */
+.dict-search-box,
+.search-bar {
   display: flex;
   gap: 12px;
+  align-items: stretch;
   margin-bottom: 24px;
+  width: 100%;
 }
 
-.dict-search-box input {
+@media (max-width: 640px) {
+  .dict-search-box,
+  .search-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+.dict-search-input-wrap,
+.cards-search-wrap {
+  position: relative;
   flex: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.dict-search-prompt,
+.cards-search-prompt {
+  position: absolute;
+  left: 14px;
   font-family: var(--mono);
-  font-size: 1.05rem;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+  user-select: none;
+  color: var(--mint);
+  text-shadow: 0 0 8px var(--mint-glow);
+}
+
+.dict-search-box input,
+.search-bar input,
+.dict-search-input,
+.search-input-inline {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 600;
   background: var(--bg-deep);
   color: var(--ink);
   border: 2px solid var(--panel-border);
   border-radius: var(--radius-btn);
-  padding: 12px 18px;
+  padding: 12px 16px 12px 36px;
   outline: none;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-[data-theme="retropc"] .dict-search-box input {
-  background: #ffffff;
-  color: #111827;
-  border-color: #404040;
+.dict-search-box input::placeholder,
+.search-bar input::placeholder,
+.dict-search-input::placeholder,
+.search-input-inline::placeholder {
+  color: var(--ink-faint);
+  font-weight: 400;
 }
 
-.dict-search-box input:focus {
+.dict-search-box input:focus,
+.search-bar input:focus,
+.dict-search-input:focus,
+.search-input-inline:focus {
   border-color: var(--mint);
-  box-shadow: 0 0 12px var(--mint-dim);
+  box-shadow: 0 0 14px var(--mint-glow), inset 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
-.dict-search-btn {
+/* 사전 검색 버튼 (공통 및 Arcade 기본) */
+.dict-search-btn,
+.search-bar button,
+.dict-search-box button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
   font-family: var(--mono);
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--bg-deep);
+  color: #020617;
   background: var(--mint);
   border: 2px solid #000;
   border-radius: var(--radius-btn);
-  padding: 12px 24px;
+  padding: 12px 22px;
   cursor: pointer;
   box-shadow: var(--lift);
-  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  text-shadow: none;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background-color 0.15s ease;
 }
 
-[data-theme="retropc"] .dict-search-btn {
-  background: #000080;
-  color: #ffffff;
+.dict-search-btn .dict-search-btn-icon {
+  font-size: 1rem;
+  display: inline-block;
+  transform: translateY(-1px);
 }
 
-[data-theme="gameboy"] .dict-search-btn {
-  background: #0f380f;
-  color: #e0f8d0;
-}
-
-.dict-search-btn:hover {
+.dict-search-btn:hover,
+.search-bar button:hover,
+.dict-search-box button:hover {
   background: var(--mint-light);
   transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #000;
 }
 
-.dict-search-btn:active {
+.dict-search-btn:active,
+.search-bar button:active,
+.dict-search-box button:active {
   transform: translate(2px, 2px);
   box-shadow: 1px 1px 0 #000;
+}
+
+/* ── [테마 2: 📼 Synthwave 80s 핫핑크 & 네온 퍼플] ─────────────────── */
+[data-theme="synthwave"] .dict-search-prompt,
+[data-theme="synthwave"] .cards-search-prompt {
+  color: #ff71ce;
+  text-shadow: 0 0 10px rgba(255, 113, 206, 0.75);
+}
+
+[data-theme="synthwave"] .dict-search-box input,
+[data-theme="synthwave"] .search-bar input,
+[data-theme="synthwave"] .dict-search-input,
+[data-theme="synthwave"] .search-input-inline {
+  background: #0d041a;
+  color: #fdf2f8;
+  border: 2px solid #6b21a8;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), 0 0 10px rgba(107, 33, 168, 0.25);
+}
+
+[data-theme="synthwave"] .dict-search-box input::placeholder,
+[data-theme="synthwave"] .search-bar input::placeholder,
+[data-theme="synthwave"] .dict-search-input::placeholder,
+[data-theme="synthwave"] .search-input-inline::placeholder {
+  color: #a855f7;
+}
+
+[data-theme="synthwave"] .dict-search-box input:focus,
+[data-theme="synthwave"] .search-bar input:focus,
+[data-theme="synthwave"] .dict-search-input:focus,
+[data-theme="synthwave"] .search-input-inline:focus {
+  border-color: #ff71ce;
+  box-shadow: 0 0 18px rgba(255, 113, 206, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+[data-theme="synthwave"] .dict-search-btn,
+[data-theme="synthwave"] .search-bar button,
+[data-theme="synthwave"] .dict-search-box button {
+  background: linear-gradient(135deg, #ff71ce 0%, #f43f5e 100%);
+  color: #07020d;
+  border: 2px solid #000;
+  box-shadow: 3px 3px 0 #01cdfe, 0 0 14px rgba(255, 113, 206, 0.45);
+  font-weight: 900;
+}
+
+[data-theme="synthwave"] .dict-search-btn:hover,
+[data-theme="synthwave"] .search-bar button:hover,
+[data-theme="synthwave"] .dict-search-box button:hover {
+  background: linear-gradient(135deg, #ff94dd 0%, #fb7185 100%);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #01cdfe, 0 0 20px rgba(255, 113, 206, 0.7);
+}
+
+[data-theme="synthwave"] .dict-search-btn:active,
+[data-theme="synthwave"] .search-bar button:active,
+[data-theme="synthwave"] .dict-search-box button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #01cdfe;
+}
+
+/* ── [테마 3: 🕹️ GameBoy Classic 1989 LCD] ────────────────────────── */
+[data-theme="gameboy"] .dict-search-prompt,
+[data-theme="gameboy"] .cards-search-prompt {
+  color: #0f380f;
+  text-shadow: none;
+  font-weight: 900;
+}
+
+[data-theme="gameboy"] .dict-search-box input,
+[data-theme="gameboy"] .search-bar input,
+[data-theme="gameboy"] .dict-search-input,
+[data-theme="gameboy"] .search-input-inline {
+  background: #9bbc0f;
+  color: #0f380f;
+  border: 3px solid #0f380f;
+  border-radius: 4px;
+  box-shadow: inset 2px 2px 0 rgba(15, 56, 15, 0.25);
+  font-weight: 700;
+}
+
+[data-theme="gameboy"] .dict-search-box input::placeholder,
+[data-theme="gameboy"] .search-bar input::placeholder,
+[data-theme="gameboy"] .dict-search-input::placeholder,
+[data-theme="gameboy"] .search-input-inline::placeholder {
+  color: #306230;
+}
+
+[data-theme="gameboy"] .dict-search-box input:focus,
+[data-theme="gameboy"] .search-bar input:focus,
+[data-theme="gameboy"] .dict-search-input:focus,
+[data-theme="gameboy"] .search-input-inline:focus {
+  background: #a4c718;
+  border-color: #0f380f;
+  box-shadow: inset 3px 3px 0 rgba(15, 56, 15, 0.4), 0 0 0 2px #306230;
+}
+
+[data-theme="gameboy"] .dict-search-btn,
+[data-theme="gameboy"] .search-bar button,
+[data-theme="gameboy"] .dict-search-box button {
+  background: #0f380f;
+  color: #9bbc0f;
+  border: 2px solid #0f380f;
+  border-radius: 4px;
+  box-shadow: 3px 3px 0 #306230;
+  font-weight: 900;
+}
+
+[data-theme="gameboy"] .dict-search-btn:hover,
+[data-theme="gameboy"] .search-bar button:hover,
+[data-theme="gameboy"] .dict-search-box button:hover {
+  background: #244b24;
+  color: #e0f8d0;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 #306230;
+}
+
+[data-theme="gameboy"] .dict-search-btn:active,
+[data-theme="gameboy"] .search-bar button:active,
+[data-theme="gameboy"] .dict-search-box button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #306230;
+}
+
+/* ── [테마 4: 💾 Retro PC 95 윈도우 95] ───────────────────────────── */
+[data-theme="retropc"] .dict-search-prompt,
+[data-theme="retropc"] .cards-search-prompt {
+  color: #000080;
+  text-shadow: none;
+  font-weight: 900;
+}
+
+[data-theme="retropc"] .dict-search-box input,
+[data-theme="retropc"] .search-bar input,
+[data-theme="retropc"] .dict-search-input,
+[data-theme="retropc"] .search-input-inline {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid;
+  border-color: #808080 #dfdfdf #dfdfdf #808080;
+  border-radius: 0;
+  box-shadow: inset 1px 1px 0 #000000;
+  font-weight: 600;
+}
+
+[data-theme="retropc"] .dict-search-box input::placeholder,
+[data-theme="retropc"] .search-bar input::placeholder,
+[data-theme="retropc"] .dict-search-input::placeholder,
+[data-theme="retropc"] .search-input-inline::placeholder {
+  color: #7f7f7f;
+}
+
+[data-theme="retropc"] .dict-search-box input:focus,
+[data-theme="retropc"] .search-bar input:focus,
+[data-theme="retropc"] .dict-search-input:focus,
+[data-theme="retropc"] .search-input-inline:focus {
+  border-color: #000080 #dfdfdf #dfdfdf #000080;
+  box-shadow: inset 2px 2px 0 #000080;
+  outline: 1px dotted #000080;
+}
+
+[data-theme="retropc"] .dict-search-btn,
+[data-theme="retropc"] .search-bar button,
+[data-theme="retropc"] .dict-search-box button {
+  background: #c0c0c0;
+  color: #000000;
+  border: 2px solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  border-radius: 0;
+  box-shadow: 1px 1px 0 #000000;
+  font-weight: bold;
+}
+
+[data-theme="retropc"] .dict-search-btn:hover,
+[data-theme="retropc"] .search-bar button:hover,
+[data-theme="retropc"] .dict-search-box button:hover {
+  background: #d4d4d4;
+  transform: none;
+  box-shadow: 1px 1px 0 #000000;
+}
+
+[data-theme="retropc"] .dict-search-btn:active,
+[data-theme="retropc"] .search-bar button:active,
+[data-theme="retropc"] .dict-search-box button:active {
+  border-color: #808080 #ffffff #ffffff #808080;
+  box-shadow: inset 1px 1px 0 #000000;
+  transform: translate(1px, 1px);
+}
+
+/* ── 내 단어장 탭 헤더 ────────────────────────────────────────── */
+.cards-header-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.badge-count {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 800;
+  padding: 10px 16px;
+  border-radius: var(--radius-btn);
+  background: var(--bg-deep);
+  color: var(--mint);
+  border: 2px solid var(--panel-border);
+  white-space: nowrap;
+}
+
+[data-theme="synthwave"] .badge-count {
+  background: #0d041a;
+  color: #ff71ce;
+  border-color: #6b21a8;
+}
+
+[data-theme="gameboy"] .badge-count {
+  background: #9bbc0f;
+  color: #0f380f;
+  border-color: #0f380f;
+  border-radius: 4px;
+}
+
+[data-theme="retropc"] .badge-count {
+  background: #ffffff;
+  color: #000080;
+  border-color: #808080;
+  border-radius: 0;
 }
 
 /* 사전 검색 결과 카드 */

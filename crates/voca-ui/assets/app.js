@@ -768,6 +768,7 @@
       const query = input?.value.trim();
       if (!query || !resultBox) return;
 
+      playSfx('click');
       resultBox.innerHTML = `<p class="loading-state">사전 조회 중: <strong>${escapeHtml(query)}</strong>...</p>`;
 
       try {
@@ -778,6 +779,7 @@
         }
 
         const data = await res.json();
+        playSfx('good');
         renderDictResults(data, resultBox);
       } catch (err) {
         resultBox.innerHTML = `<p class="error-msg">사전 조회 중 오류가 발생했습니다.</p>`;
